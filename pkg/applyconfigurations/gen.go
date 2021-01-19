@@ -163,11 +163,11 @@ import (
 // types in the given package, writing the formatted result to given writer.
 // May return nil if source could not be generated.
 func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
-	allTypes, err := enabledOnPackage(ctx.Collector, root)
-	if err != nil {
-		root.AddError(err)
-		return nil
-	}
+	// allTypes, err := enabledOnPackage(ctx.Collector, root)
+	// if err != nil {
+	// 	root.AddError(err)
+	// 	return nil
+	// }
 
 	ctx.Checker.Check(root)
 
@@ -184,12 +184,6 @@ func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
 
 	if err := markers.EachType(ctx.Collector, root, func(info *markers.TypeInfo) {
 		outContent := new(bytes.Buffer)
-
-		if !enabledOnType(allTypes, info) {
-			//root.AddError(fmt.Errorf("skipping type: %v", info.Name)) // TODO(jpbetz): Remove
-			return
-		}
-
 		// not all types required a generate apply configuration. For example, no apply configuration
 		// type is needed for Quantity, IntOrString, RawExtension or Unknown.
 		if !shouldBeApplyConfiguration(root, info) {
@@ -203,7 +197,28 @@ func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
 			codeWriter:  &codeWriter{out: outContent},
 		}
 
-		copyCtx.GenerateTypesFor(root, info)
+		// TODO|jefftree: Make this a CLI toggle between builder and go structs
+		if false {
+			copyCtx.GenerateStruct(root, info)
+			copyCtx.GenerateFieldsStruct(root, info)
+			for _, field := range info.Fields {
+				if field.Name != "" {
+					copyCtx.GenerateMemberSet(field, root, info)
+					copyCtx.GenerateMemberRemove(field, root, info)
+					copyCtx.GenerateMemberGet(field, root, info)
+				}
+			}
+			copyCtx.GenerateToUnstructured(root, info)
+			copyCtx.GenerateFromUnstructured(root, info)
+			copyCtx.GenerateMarshal(root, info)
+			copyCtx.GenerateUnmarshal(root, info)
+			copyCtx.GeneratePrePostFunctions(root, info)
+
+		} else {
+			copyCtx.GenerateTypesFor(root, info)
+			copyCtx.GenerateStructConstructor(root, info)
+		}
+		copyCtx.GenerateListMapAlias(root, info)
 
 		outBytes := outContent.Bytes()
 		if len(outBytes) > 0 {

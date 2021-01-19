@@ -137,7 +137,7 @@ type namingInfo struct {
 }
 
 // Syntax calculates the code representation of the given type or name,
-// and marks that is used (potentially marking an import as used).
+// and returns the apply representation
 func (n *namingInfo) Syntax(basePkg *loader.Package, imports *importsList) string {
 	if n.nameOverride != "" {
 		return n.nameOverride
@@ -149,11 +149,20 @@ func (n *namingInfo) Syntax(basePkg *loader.Package, imports *importsList) strin
 	case *types.Named:
 		// register that we need an import for this type,
 		// so we can get the appropriate alias to use.
+
+		var lastType types.Type
+		appendString := "ApplyConfiguration"
+		for underlyingType := typeInfo.Underlying(); underlyingType != lastType; lastType, underlyingType = underlyingType, underlyingType.Underlying() {
+			if _, isBasic := underlyingType.(*types.Basic); isBasic {
+				appendString = ""
+			}
+		}
+
 		typeName := typeInfo.Obj()
 		otherPkg := typeName.Pkg()
 		if otherPkg == basePkg.Types {
 			// local import
-			return typeName.Name()
+			return typeName.Name() + appendString
 		}
 		alias := imports.NeedImport(loader.NonVendorPath(otherPkg.Path()))
 		return alias + "." + typeName.Name()
@@ -168,6 +177,8 @@ func (n *namingInfo) Syntax(basePkg *loader.Package, imports *importsList) strin
 			"map[%s]%s",
 			(&namingInfo{typeInfo: typeInfo.Key()}).Syntax(basePkg, imports),
 			(&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(basePkg, imports))
+	case *types.Interface:
+		return "interface{}"
 	default:
 		basePkg.AddError(fmt.Errorf("name requested for invalid type: %s", typeInfo))
 		return typeInfo.String()
@@ -191,7 +202,263 @@ func (c *applyConfigurationMaker) GenerateTypesFor(root *loader.Package, info *m
 
 	// TODO(jpbetz): Generate output here
 
-	c.Linef("type %sApplyConfiguration struct {}", info.Name)
+	c.Linef("// %sApplyConfiguration represents a declarative configuration of the %s type for use", info.Name, info.Name)
+	c.Linef("// with apply.")
+	c.Linef("type %sApplyConfiguration struct {", info.Name)
+	if len(info.Fields) > 0 {
+		for _, field := range info.Fields {
+			fieldName := field.Name
+			fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+			fieldNamingInfo := namingInfo{typeInfo: fieldType}
+			fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+			if tags, ok := lookupJsonTags(field); ok {
+				if tags.inline {
+					c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
+				} else {
+					tags.omitempty = true
+					c.Linef("%s *%s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
+				}
+			}
+		}
+	}
+	c.Linef("}")
+}
+
+func generatePrivateName(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	s2 := []byte(s)
+	s2[0] = s2[0] | ('a' - 'A')
+	return fmt.Sprintf("%s", s2)
+}
+
+func (c *applyConfigurationMaker) GenerateStruct(root *loader.Package, info *markers.TypeInfo) {
+	typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
+	if typeInfo == types.Typ[types.Invalid] {
+		root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
+	}
+
+	c.Linef("// %sApplyConfiguration represents a declarative configuration of the %s type for use", info.Name, info.Name)
+	c.Linef("// with apply.")
+	c.Linef("type %sApplyConfiguration struct {", info.Name)
+	for _, field := range info.Fields {
+		privateFieldName := generatePrivateName(field.Name)
+		fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+		fieldNamingInfo := namingInfo{typeInfo: fieldType}
+		fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+		if tags, ok := lookupJsonTags(field); ok {
+			if !tags.inline {
+				continue
+			}
+			c.Linef("%s %s // inlined type", privateFieldName, fieldTypeString)
+		}
+	}
+	c.Linef("fields %sFields", generatePrivateName(info.Name))
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateFieldsStruct(root *loader.Package, info *markers.TypeInfo) {
+	typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
+	if typeInfo == types.Typ[types.Invalid] {
+		root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
+	}
+
+	privateTypeName := generatePrivateName(info.Name)
+	c.Linef("// %s owns all fields except inlined fields", privateTypeName)
+	// TODO|jefftree: Copy over rest of documentation
+	c.Linef("type %sFields struct {", privateTypeName)
+	if len(info.Fields) > 0 {
+		for _, field := range info.Fields {
+			fieldName := field.Name
+			fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+			fieldNamingInfo := namingInfo{typeInfo: fieldType}
+			fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+			if tags, ok := lookupJsonTags(field); ok {
+				// TODO:jefftree: Handle inline objects
+				if tags.inline {
+					continue
+				}
+				tags.omitempty = true
+				c.Linef("%s *%s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
+			}
+		}
+	}
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateStructConstructor(root *loader.Package, info *markers.TypeInfo) {
+	c.Linef("// %sApplyConfiguration represents a declarative configuration of the %s type for use", info.Name, info.Name)
+	c.Linef("// with apply.")
+	c.Linef("func %s() *%sApplyConfiguration {", info.Name, info.Name)
+	c.Linef("return &%sApplyConfiguration{}", info.Name)
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateMemberSet(field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
+	fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+	fieldNamingInfo := namingInfo{typeInfo: fieldType}
+	fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+
+	c.Linef("// Set%s sets the %s field in the declarative configuration to the given value", field.Name, field.Name)
+	c.Linef("func (b *%sApplyConfiguration) Set%s(value %s) *%sApplyConfiguration {", info.Name, field.Name, fieldTypeString, info.Name)
+
+	if tags, ok := lookupJsonTags(field); ok {
+		// TODO|jefftree: Do we support double pointers?
+		if tags.inline {
+			c.Linef("if value != nil {")
+			c.Linef("b.%s = *value", field.Name)
+			c.Linef("}")
+		} else {
+			// TODO|jefftree: Confirm with jpbetz on how to handle fields that are already pointers
+			c.Linef("b.fields.%s = &value", field.Name)
+		}
+	}
+	c.Linef("return b")
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateMemberRemove(field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
+	fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+	fieldNamingInfo := namingInfo{typeInfo: fieldType}
+	fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+
+	if tags, ok := lookupJsonTags(field); ok {
+		if tags.inline {
+			return
+		}
+	}
+
+	c.Linef("// Remove%s removes the %s field in the declarative configuration", field.Name, field.Name)
+	c.Linef("func (b *%sApplyConfiguration) Remove%s(value %s) *%sApplyConfiguration {", info.Name, field.Name, fieldTypeString, info.Name)
+	c.Linef("b.fields.%s = nil", field.Name)
+	c.Linef("return b")
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateMemberGet(field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
+	fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+	fieldNamingInfo := namingInfo{typeInfo: fieldType}
+	fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+
+	c.Linef("// Get%s gets the %s field in the declarative configuration", field.Name, field.Name)
+	c.Linef("func (b *%sApplyConfiguration) Get%s() (value %s, ok bool) {", info.Name, field.Name, fieldTypeString)
+
+	if tags, ok := lookupJsonTags(field); ok {
+		if tags.inline {
+			c.Linef("return b.%s, true", field.Name)
+		} else {
+			// TODO|jefftree: Confirm with jpbetz on how to handle fields that are already pointers
+
+			// c.Linef("return b.fields.%s, b.fields.%s != nil", field.Name, field.Name)
+			c.Linef("if v := b.fields.%s; v != nil {", field.Name)
+			c.Linef("return *v, true")
+			c.Linef("}")
+			c.Linef("return value, false")
+		}
+	}
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateToUnstructured(root *loader.Package, info *markers.TypeInfo) {
+	runtime := c.NeedImport("k8s.io/apimachinery/pkg/runtime")
+	var toUnstructured = `
+// ToUnstructured converts %s to unstructured.
+func (b *%sApplyConfiguration) ToUnstructured() interface{} {
+  if b == nil {
+    return nil
+  }
+  b.preMarshal()
+  u, err := %s.DefaultUnstructuredConverter.ToUnstructured(&b.fields)
+  if err != nil {
+    panic(err)
+  }
+  return u
+}
+`
+	c.Linef(toUnstructured, info.Name, info.Name, runtime)
+}
+
+func (c *applyConfigurationMaker) GenerateFromUnstructured(root *loader.Package, info *markers.TypeInfo) {
+	runtime := c.NeedImport("k8s.io/apimachinery/pkg/runtime")
+	var fromUnstructured = `
+// FromUnstructured converts unstructured to %sApplyConfiguration, replacing the contents
+// of %sApplyConfiguration.
+func (b *%sApplyConfiguration) FromUnstructured(u map[string]interface{}) error {
+  m := &%sFields{}
+  err := %s.DefaultUnstructuredConverter.FromUnstructured(u, m)
+  if err != nil {
+    return err
+  }
+  b.fields = *m
+  b.postUnmarshal()
+  return nil
+}
+`
+	c.Linef(fromUnstructured, info.Name, info.Name, info.Name, generatePrivateName(info.Name), runtime)
+}
+
+func (c *applyConfigurationMaker) GenerateMarshal(root *loader.Package, info *markers.TypeInfo) {
+	jsonImport := c.NeedImport("encoding/json")
+	var marshal = `
+// MarshalJSON marshals %sApplyConfiguration to JSON.
+func (b *%sApplyConfiguration) MarshalJSON() ([]byte, error) {
+  b.preMarshal()
+  return %s.Marshal(b.fields)
+}
+`
+	c.Linef(marshal, info.Name, info.Name, jsonImport)
+
+}
+
+func (c *applyConfigurationMaker) GenerateUnmarshal(root *loader.Package, info *markers.TypeInfo) {
+	jsonImport := c.NeedImport("encoding/json")
+	var unmarshal = `
+// UnmarshalJSON unmarshals JSON into %sApplyConfiguration, replacing the contents of
+// %sApplyConfiguration.
+func (b *%sApplyConfiguration) UnmarshalJSON(data []byte) error {
+  if err := %s.Unmarshal(data, &b.fields); err != nil {
+    return err
+  }
+  b.postUnmarshal()
+  return nil
+}
+`
+	c.Linef(unmarshal, info.Name, info.Name, info.Name, jsonImport)
+}
+
+func (c *applyConfigurationMaker) GeneratePrePostFunctions(root *loader.Package, info *markers.TypeInfo) {
+	c.Linef("func (b *%sApplyConfiguration) preMarshal() {", info.Name)
+	for _, field := range info.Fields {
+		// fieldName := field.Name
+		// privateName := generatePrivateName(fieldName)
+		// fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+		// fieldNamingInfo := namingInfo{typeInfo: fieldType}
+		// fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+		if tags, ok := lookupJsonTags(field); ok {
+			if !tags.inline {
+				continue
+			}
+			// c.Linef("if v, ok := b.%s.Get", privateName)
+		}
+	}
+	c.Linef("}")
+	c.Linef("func (b *%sApplyConfiguration) postUnmarshal() {", info.Name)
+	c.Linef("}")
+}
+
+func (c *applyConfigurationMaker) GenerateListMapAlias(root *loader.Package, info *markers.TypeInfo) {
+	var listAlias = `
+// %[1]sList represents a listAlias of %[1]sApplyConfiguration.
+type %[1]sList []*%[1]sApplyConfiguration
+`
+	var mapAlias = `
+// %[1]sMap represents a map of %[1]sApplyConfiguration.
+type %[1]sMap map[string]%[1]sApplyConfiguration
+`
+
+	c.Linef(listAlias, info.Name)
+	c.Linef(mapAlias, info.Name)
 }
 
 // shouldBeApplyConfiguration checks if we're supposed to make apply configurations for the given type.
@@ -243,9 +510,10 @@ func shouldBeApplyConfiguration(pkg *loader.Package, info *markers.TypeInfo) boo
 }
 
 var (
-	rawExtension          = "k8s.io/apimachinery/pkg/runtime/RawExtension"
-	unknown               = "k8s.io/apimachinery/pkg/runtime/Unknown"
+	rawExtension = "k8s.io/apimachinery/pkg/runtime/RawExtension"
+	unknown      = "k8s.io/apimachinery/pkg/runtime/Unknown"
 )
+
 // excludeTypes contains well known types that we do not generate apply configurations for.
 // Hard coding because we only have two, very specific types that serve a special purpose
 // in the type system here.
