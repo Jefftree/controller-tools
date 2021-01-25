@@ -172,9 +172,9 @@ func (n *namingInfo) Syntax(universe *Universe, basePkg *loader.Package, imports
 		if !exists {
 			//TODO|jefftree: This is a hack, we need some way of specifying the import path for the root package
 			if otherPkg.Path() == "command-line-arguments" {
-				path := "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata"
+				path := universe.baseImportPath
 				alias := imports.NeedImport(path)
-				return alias + "." + typeName.Name() + appendString
+				return alias + "." + typeName.Name()
 			}
 			alias := imports.NeedImport(loader.NonVendorPath(otherPkg.Path()))
 			return alias + "." + typeName.Name()
@@ -184,8 +184,7 @@ func (n *namingInfo) Syntax(universe *Universe, basePkg *loader.Package, imports
 			}
 			path := loader.NonVendorPath(otherPkg.Path())
 			path = groupAndPackageVersion(path)
-			//TODO|jefftree: Remove hardcode
-			path = "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/" + path
+			path = universe.baseImportPath + "/" + universe.importPathSuffix + "/" + path
 			alias := imports.NeedImport(path)
 			return alias + "." + typeName.Name() + appendString
 		}

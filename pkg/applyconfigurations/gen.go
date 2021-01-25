@@ -23,7 +23,6 @@ import (
 	"go/format"
 	"go/types"
 	"io"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -106,6 +105,15 @@ func groupAndPackageVersion(pkg string) string {
 	return parts[len(parts)-2] + "/" + parts[len(parts)-1]
 }
 
+func updatePackagePathForOutput(universe Universe, pkg *loader.Package) {
+	if filepath.Dir(pkg.CompiledGoFiles[0]) == universe.baseFilePath {
+		pkg.CompiledGoFiles[0] = universe.baseFilePath + "/" + universe.importPathSuffix + "/"
+	} else {
+		desiredPath := universe.baseFilePath + "/" + universe.importPathSuffix + "/" + groupAndPackageVersion(pkg.PkgPath) + "/"
+		pkg.CompiledGoFiles[0] = desiredPath
+	}
+}
+
 func (d Generator) Generate(ctx *genall.GenerationContext) error {
 	var headerText string
 
@@ -159,10 +167,11 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 	}
 
 	universe := Universe{
-		eligibleTypes: eligibleTypes,
+		eligibleTypes:    eligibleTypes,
+		baseImportPath:   "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata",
+		importPathSuffix: "ac",
+		baseFilePath:     filepath.Dir(crdRoot.CompiledGoFiles[0]),
 	}
-
-	basePath := filepath.Dir(crdRoot.CompiledGoFiles[0])
 
 	for _, pkg := range visited {
 		outContents := objGenCtx.generateForPackage(universe, pkg)
@@ -170,16 +179,8 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 			continue
 		}
 
-		if pkg != ctx.Roots[0] {
-			desiredPath := basePath + "/ac/" + groupAndPackageVersion(pkg.PkgPath) + "/"
-			if _, err := os.Stat(desiredPath); os.IsNotExist(err) {
-				os.MkdirAll(desiredPath, os.ModePerm)
-			}
-			pkg.CompiledGoFiles[0] = desiredPath
-		} else {
-			pkg.CompiledGoFiles[0] = basePath + "/ac/"
-			os.MkdirAll(pkg.CompiledGoFiles[0], os.ModePerm)
-		}
+		// TODO|jefftree: Changing the import path affects deepcopy as well. Is this the correct approach?
+		updatePackagePathForOutput(universe, pkg)
 		writeOut(ctx, pkg, outContents)
 
 	}
@@ -235,7 +236,10 @@ func (ctx *ObjectGenCtx) generateEligibleTypes(root *loader.Package) []types.Typ
 }
 
 type Universe struct {
-	eligibleTypes []types.Type
+	eligibleTypes    []types.Type
+	baseImportPath   string
+	importPathSuffix string
+	baseFilePath     string
 }
 
 // generateForPackage generates apply configuration implementations for
@@ -286,7 +290,6 @@ func (ctx *ObjectGenCtx) generateForPackage(universe Universe, root *loader.Pack
 			copyCtx.GenerateTypesFor(&universe, root, info)
 			copyCtx.GenerateStructConstructor(root, info)
 		}
-		// copyCtx.GenerateListMapAlias(root, info)
 
 		outBytes := outContent.Bytes()
 		if len(outBytes) > 0 {
@@ -336,7 +339,7 @@ func writeTypes(pkg *loader.Package, out io.Writer, byType map[string][]byte) {
 // writeFormatted outputs the given code, after gofmt-ing it.  If we couldn't gofmt,
 // we write the unformatted code for debugging purposes.
 func writeOut(ctx *genall.GenerationContext, root *loader.Package, outBytes []byte) {
-	outputFile, err := ctx.Open(root, root.Name+"_zz_generated.applyconfigurations.go")
+	outputFile, err := ctx.Open(root, "zz_generated.applyconfigurations.go")
 	if err != nil {
 		root.AddError(err)
 		return

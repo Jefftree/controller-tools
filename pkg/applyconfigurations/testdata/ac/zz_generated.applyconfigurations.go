@@ -59,34 +59,34 @@ func CronJobList() *CronJobListApplyConfiguration {
 // CronJobSpecApplyConfiguration represents a declarative configuration of the CronJobSpec type for use
 // with apply.
 type CronJobSpecApplyConfiguration struct {
-	Schedule                   *string                                      `json:"schedule,omitempty"`
-	StartingDeadlineSeconds    *int64                                       `json:"startingDeadlineSeconds,omitempty"`
-	ConcurrencyPolicy          *testdata.ConcurrencyPolicy                  `json:"concurrencyPolicy,omitempty"`
-	Suspend                    *bool                                        `json:"suspend,omitempty"`
-	NoReallySuspend            *testdata.TotallyABool                       `json:"noReallySuspend,omitempty"`
-	BinaryName                 *[]byte                                      `json:"binaryName,omitempty"`
-	CanBeNull                  *string                                      `json:"canBeNull,omitempty"`
-	JobTemplate                *v1beta1.JobTemplateSpecApplyConfiguration   `json:"jobTemplate,omitempty"`
-	SuccessfulJobsHistoryLimit *int32                                       `json:"successfulJobsHistoryLimit,omitempty"`
-	FailedJobsHistoryLimit     *int32                                       `json:"failedJobsHistoryLimit,omitempty"`
-	ByteSliceData              *map[string][]byte                           `json:"byteSliceData,omitempty"`
-	StringSliceData            *map[string][]string                         `json:"stringSliceData,omitempty"`
-	PtrData                    *map[string]*string                          `json:"ptrData,omitempty"`
-	TwoOfAKindPart0            *string                                      `json:"twoOfAKindPart0,omitempty"`
-	TwoOfAKindPart1            *testdata.LongerString                       `json:"twoOfAKindPart1,omitempty"`
-	DefaultedString            *string                                      `json:"defaultedString,omitempty"`
-	DefaultedSlice             *[]string                                    `json:"defaultedSlice,omitempty"`
-	DefaultedObject            *[]RootObjectApplyConfiguration              `json:"defaultedObject,omitempty"`
-	PatternObject              *string                                      `json:"patternObject,omitempty"`
-	EmbeddedResource           *runtime.RawExtension                        `json:"embeddedResource,omitempty"`
-	UnprunedJSON               *NestedObjectApplyConfiguration              `json:"unprunedJSON,omitempty"`
-	UnprunedEmbeddedResource   *runtime.RawExtension                        `json:"unprunedEmbeddedResource,omitempty"`
-	UnprunedFromType           *PreservedApplyConfiguration                 `json:"unprunedFomType,omitempty"`
-	AssociativeList            *[]AssociativeTypeApplyConfiguration         `json:"associativeList,omitempty"`
-	MapOfInfo                  *map[string][]byte                           `json:"mapOfInfo,omitempty"`
-	StructWithSeveralFields    *NestedObjectApplyConfiguration              `json:"structWithSeveralFields,omitempty"`
-	JustNestedObject           *testdata.JustNestedObjectApplyConfiguration `json:"justNestedObject,omitempty"`
-	MinMaxProperties           *MinMaxObjectApplyConfiguration              `json:"minMaxProperties,omitempty"`
+	Schedule                   *string                                    `json:"schedule,omitempty"`
+	StartingDeadlineSeconds    *int64                                     `json:"startingDeadlineSeconds,omitempty"`
+	ConcurrencyPolicy          *testdata.ConcurrencyPolicy                `json:"concurrencyPolicy,omitempty"`
+	Suspend                    *bool                                      `json:"suspend,omitempty"`
+	NoReallySuspend            *testdata.TotallyABool                     `json:"noReallySuspend,omitempty"`
+	BinaryName                 *[]byte                                    `json:"binaryName,omitempty"`
+	CanBeNull                  *string                                    `json:"canBeNull,omitempty"`
+	JobTemplate                *v1beta1.JobTemplateSpecApplyConfiguration `json:"jobTemplate,omitempty"`
+	SuccessfulJobsHistoryLimit *int32                                     `json:"successfulJobsHistoryLimit,omitempty"`
+	FailedJobsHistoryLimit     *int32                                     `json:"failedJobsHistoryLimit,omitempty"`
+	ByteSliceData              *map[string][]byte                         `json:"byteSliceData,omitempty"`
+	StringSliceData            *map[string][]string                       `json:"stringSliceData,omitempty"`
+	PtrData                    *map[string]*string                        `json:"ptrData,omitempty"`
+	TwoOfAKindPart0            *string                                    `json:"twoOfAKindPart0,omitempty"`
+	TwoOfAKindPart1            *testdata.LongerString                     `json:"twoOfAKindPart1,omitempty"`
+	DefaultedString            *string                                    `json:"defaultedString,omitempty"`
+	DefaultedSlice             *[]string                                  `json:"defaultedSlice,omitempty"`
+	DefaultedObject            *[]RootObjectApplyConfiguration            `json:"defaultedObject,omitempty"`
+	PatternObject              *string                                    `json:"patternObject,omitempty"`
+	EmbeddedResource           *runtime.RawExtension                      `json:"embeddedResource,omitempty"`
+	UnprunedJSON               *NestedObjectApplyConfiguration            `json:"unprunedJSON,omitempty"`
+	UnprunedEmbeddedResource   *runtime.RawExtension                      `json:"unprunedEmbeddedResource,omitempty"`
+	UnprunedFromType           *PreservedApplyConfiguration               `json:"unprunedFomType,omitempty"`
+	AssociativeList            *[]AssociativeTypeApplyConfiguration       `json:"associativeList,omitempty"`
+	MapOfInfo                  *map[string][]byte                         `json:"mapOfInfo,omitempty"`
+	StructWithSeveralFields    *NestedObjectApplyConfiguration            `json:"structWithSeveralFields,omitempty"`
+	JustNestedObject           *testdata.JustNestedObject                 `json:"justNestedObject,omitempty"`
+	MinMaxProperties           *MinMaxObjectApplyConfiguration            `json:"minMaxProperties,omitempty"`
 }
 
 // CronJobSpecApplyConfiguration represents a declarative configuration of the CronJobSpec type for use
