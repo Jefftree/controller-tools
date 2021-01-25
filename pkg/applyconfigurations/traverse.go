@@ -136,15 +136,14 @@ type namingInfo struct {
 	nameOverride string
 }
 
+// func ChangeImport()
 // Syntax calculates the code representation of the given type or name,
 // and returns the apply representation
-func (n *namingInfo) Syntax(basePkg *loader.Package, imports *importsList) string {
+func (n *namingInfo) Syntax(universe *Universe, basePkg *loader.Package, imports *importsList) string {
 	if n.nameOverride != "" {
 		return n.nameOverride
 	}
 
-	// NB(directxman12): typeInfo.String gets us most of the way there,
-	// but fails (for us) on named imports, since it uses the full package path.
 	switch typeInfo := n.typeInfo.(type) {
 	case *types.Named:
 		// register that we need an import for this type,
@@ -152,35 +151,61 @@ func (n *namingInfo) Syntax(basePkg *loader.Package, imports *importsList) strin
 
 		var lastType types.Type
 		appendString := "ApplyConfiguration"
+		// var isBasic, isStruct bool
 		for underlyingType := typeInfo.Underlying(); underlyingType != lastType; lastType, underlyingType = underlyingType, underlyingType.Underlying() {
-			if _, isBasic := underlyingType.(*types.Basic); isBasic {
+			if _, ok := underlyingType.(*types.Basic); ok {
+				// isBasic = true
 				appendString = ""
 			}
 		}
 
 		typeName := typeInfo.Obj()
 		otherPkg := typeName.Pkg()
-		if otherPkg == basePkg.Types {
-			// local import
-			return typeName.Name() + appendString
+
+		var exists bool
+		for _, b := range universe.eligibleTypes {
+			if b == typeInfo {
+				exists = true
+				break
+			}
 		}
-		alias := imports.NeedImport(loader.NonVendorPath(otherPkg.Path()))
-		return alias + "." + typeName.Name()
+		if !exists {
+			//TODO|jefftree: This is a hack, we need some way of specifying the import path for the root package
+			if otherPkg.Path() == "command-line-arguments" {
+				path := "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata"
+				alias := imports.NeedImport(path)
+				return alias + "." + typeName.Name() + appendString
+			}
+			alias := imports.NeedImport(loader.NonVendorPath(otherPkg.Path()))
+			return alias + "." + typeName.Name()
+		} else {
+			if otherPkg == basePkg.Types {
+				return typeName.Name() + appendString
+			}
+			path := loader.NonVendorPath(otherPkg.Path())
+			path = groupAndPackageVersion(path)
+			//TODO|jefftree: Remove hardcode
+			path = "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/" + path
+			alias := imports.NeedImport(path)
+			return alias + "." + typeName.Name() + appendString
+		}
 	case *types.Basic:
 		return typeInfo.String()
 	case *types.Pointer:
-		return "*" + (&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(basePkg, imports)
+		return "*" + (&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(universe, basePkg, imports)
 	case *types.Slice:
-		return "[]" + (&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(basePkg, imports)
+		return "[]" + (&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(universe, basePkg, imports)
 	case *types.Map:
 		return fmt.Sprintf(
 			"map[%s]%s",
-			(&namingInfo{typeInfo: typeInfo.Key()}).Syntax(basePkg, imports),
-			(&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(basePkg, imports))
+			(&namingInfo{typeInfo: typeInfo.Key()}).Syntax(universe, basePkg, imports),
+			(&namingInfo{typeInfo: typeInfo.Elem()}).Syntax(universe, basePkg, imports))
 	case *types.Interface:
 		return "interface{}"
+	case *types.Signature:
+		return typeInfo.String()
 	default:
-		basePkg.AddError(fmt.Errorf("name requested for invalid type: %s", typeInfo))
+		// basePkg.AddError(fmt.Errorf("name requested for invalid type: %s", typeInfo))
 		return typeInfo.String()
 	}
 }
@@ -188,16 +213,20 @@ func (n *namingInfo) Syntax(basePkg *loader.Package, imports *importsList) strin
 // copyMethodMakers makes apply configurations for Go types,
 // writing them to its codeWriter.
 type applyConfigurationMaker struct {
-	pkg *loader.Package
+	applyConfigMap map[string]string
+	pkg            *loader.Package
 	*importsList
 	*codeWriter
 }
 
 // GenerateTypesFor makes makes apply configuration types for the given type, when appropriate
-func (c *applyConfigurationMaker) GenerateTypesFor(root *loader.Package, info *markers.TypeInfo) {
+func (c *applyConfigurationMaker) GenerateTypesFor(universe *Universe, root *loader.Package, info *markers.TypeInfo) {
 	typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
 	if typeInfo == types.Typ[types.Invalid] {
 		root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
+	}
+	if len(info.Fields) == 0 {
+		return
 	}
 
 	// TODO(jpbetz): Generate output here
@@ -205,19 +234,20 @@ func (c *applyConfigurationMaker) GenerateTypesFor(root *loader.Package, info *m
 	c.Linef("// %sApplyConfiguration represents a declarative configuration of the %s type for use", info.Name, info.Name)
 	c.Linef("// with apply.")
 	c.Linef("type %sApplyConfiguration struct {", info.Name)
-	if len(info.Fields) > 0 {
-		for _, field := range info.Fields {
-			fieldName := field.Name
-			fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
-			fieldNamingInfo := namingInfo{typeInfo: fieldType}
-			fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
-			if tags, ok := lookupJsonTags(field); ok {
-				if tags.inline {
-					c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
-				} else {
-					tags.omitempty = true
-					c.Linef("%s *%s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
-				}
+	for _, field := range info.Fields {
+		fieldName := field.Name
+		fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
+		fieldNamingInfo := namingInfo{typeInfo: fieldType}
+		fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
+		if tags, ok := lookupJsonTags(field); ok {
+			if tags.inline {
+				c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
+		} else if isPointer(fieldNamingInfo.typeInfo) {
+				tags.omitempty = true
+				c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
+		} else {
+				tags.omitempty = true
+				c.Linef("%s *%s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
 			}
 		}
 	}
@@ -233,7 +263,7 @@ func generatePrivateName(s string) string {
 	return fmt.Sprintf("%s", s2)
 }
 
-func (c *applyConfigurationMaker) GenerateStruct(root *loader.Package, info *markers.TypeInfo) {
+func (c *applyConfigurationMaker) GenerateStruct(universe *Universe, root *loader.Package, info *markers.TypeInfo) {
 	typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
 	if typeInfo == types.Typ[types.Invalid] {
 		root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
@@ -246,7 +276,7 @@ func (c *applyConfigurationMaker) GenerateStruct(root *loader.Package, info *mar
 		privateFieldName := generatePrivateName(field.Name)
 		fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
 		fieldNamingInfo := namingInfo{typeInfo: fieldType}
-		fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+		fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
 		if tags, ok := lookupJsonTags(field); ok {
 			if !tags.inline {
 				continue
@@ -258,7 +288,7 @@ func (c *applyConfigurationMaker) GenerateStruct(root *loader.Package, info *mar
 	c.Linef("}")
 }
 
-func (c *applyConfigurationMaker) GenerateFieldsStruct(root *loader.Package, info *markers.TypeInfo) {
+func (c *applyConfigurationMaker) GenerateFieldsStruct(universe *Universe, root *loader.Package, info *markers.TypeInfo) {
 	typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
 	if typeInfo == types.Typ[types.Invalid] {
 		root.AddError(loader.ErrFromNode(fmt.Errorf("unknown type: %s", info.Name), info.RawSpec))
@@ -273,7 +303,7 @@ func (c *applyConfigurationMaker) GenerateFieldsStruct(root *loader.Package, inf
 			fieldName := field.Name
 			fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
 			fieldNamingInfo := namingInfo{typeInfo: fieldType}
-			fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+			fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
 			if tags, ok := lookupJsonTags(field); ok {
 				// TODO:jefftree: Handle inline objects
 				if tags.inline {
@@ -295,20 +325,46 @@ func (c *applyConfigurationMaker) GenerateStructConstructor(root *loader.Package
 	c.Linef("}")
 }
 
-func (c *applyConfigurationMaker) GenerateMemberSet(field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
+func isApplyConfig(t types.Type) bool {
+	switch typeInfo := t.(type) {
+	case *types.Named:
+		return isApplyConfig(typeInfo.Underlying())
+	case *types.Struct:
+		return true
+	case *types.Pointer:
+		return isApplyConfig(typeInfo.Elem())
+	default:
+		return false
+	}
+}
+
+func isPointer(t types.Type) bool {
+	switch t.(type) {
+	case *types.Pointer:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *applyConfigurationMaker) GenerateMemberSet(universe *Universe, field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
 	fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
 	fieldNamingInfo := namingInfo{typeInfo: fieldType}
-	fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+	fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
 
 	c.Linef("// Set%s sets the %s field in the declarative configuration to the given value", field.Name, field.Name)
+	if isApplyConfig(fieldNamingInfo.typeInfo) {
+		fieldTypeString = "*" + fieldTypeString
+	}
 	c.Linef("func (b *%sApplyConfiguration) Set%s(value %s) *%sApplyConfiguration {", info.Name, field.Name, fieldTypeString, info.Name)
 
 	if tags, ok := lookupJsonTags(field); ok {
-		// TODO|jefftree: Do we support double pointers?
 		if tags.inline {
 			c.Linef("if value != nil {")
 			c.Linef("b.%s = *value", field.Name)
 			c.Linef("}")
+		} else if isApplyConfig(fieldNamingInfo.typeInfo) {
+			c.Linef("b.fields.%s = value", field.Name)
 		} else {
 			// TODO|jefftree: Confirm with jpbetz on how to handle fields that are already pointers
 			c.Linef("b.fields.%s = &value", field.Name)
@@ -318,10 +374,13 @@ func (c *applyConfigurationMaker) GenerateMemberSet(field markers.FieldInfo, roo
 	c.Linef("}")
 }
 
-func (c *applyConfigurationMaker) GenerateMemberRemove(field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
+func (c *applyConfigurationMaker) GenerateMemberRemove(universe *Universe, field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
 	fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
 	fieldNamingInfo := namingInfo{typeInfo: fieldType}
-	fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+	fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
+	if isApplyConfig(fieldNamingInfo.typeInfo) {
+		fieldTypeString = "*" + fieldTypeString
+	}
 
 	if tags, ok := lookupJsonTags(field); ok {
 		if tags.inline {
@@ -336,10 +395,13 @@ func (c *applyConfigurationMaker) GenerateMemberRemove(field markers.FieldInfo, 
 	c.Linef("}")
 }
 
-func (c *applyConfigurationMaker) GenerateMemberGet(field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
+func (c *applyConfigurationMaker) GenerateMemberGet(universe *Universe, field markers.FieldInfo, root *loader.Package, info *markers.TypeInfo) {
 	fieldType := root.TypesInfo.TypeOf(field.RawField.Type)
 	fieldNamingInfo := namingInfo{typeInfo: fieldType}
-	fieldTypeString := fieldNamingInfo.Syntax(root, c.importsList)
+	fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
+	if isApplyConfig(fieldNamingInfo.typeInfo) {
+		fieldTypeString = "*" + fieldTypeString
+	}
 
 	c.Linef("// Get%s gets the %s field in the declarative configuration", field.Name, field.Name)
 	c.Linef("func (b *%sApplyConfiguration) Get%s() (value %s, ok bool) {", info.Name, field.Name, fieldTypeString)
@@ -347,10 +409,9 @@ func (c *applyConfigurationMaker) GenerateMemberGet(field markers.FieldInfo, roo
 	if tags, ok := lookupJsonTags(field); ok {
 		if tags.inline {
 			c.Linef("return b.%s, true", field.Name)
+		} else if isApplyConfig(fieldNamingInfo.typeInfo) {
+			c.Linef("return b.fields.%[1]s, b.fields.%[1]s != nil", field.Name)
 		} else {
-			// TODO|jefftree: Confirm with jpbetz on how to handle fields that are already pointers
-
-			// c.Linef("return b.fields.%s, b.fields.%s != nil", field.Name, field.Name)
 			c.Linef("if v := b.fields.%s; v != nil {", field.Name)
 			c.Linef("return *v, true")
 			c.Linef("}")
@@ -484,11 +545,6 @@ func shouldBeApplyConfiguration(pkg *loader.Package, info *markers.TypeInfo) boo
 	lastType := typeInfo
 	if _, isNamed := typeInfo.(*types.Named); isNamed {
 		for underlyingType := typeInfo.Underlying(); underlyingType != lastType; lastType, underlyingType = underlyingType, underlyingType.Underlying() {
-			// aliases to other things besides basics need copy methods
-			// (basics can be straight-up shallow-copied)
-			if _, isBasic := underlyingType.(*types.Basic); !isBasic {
-				return true
-			}
 		}
 	}
 

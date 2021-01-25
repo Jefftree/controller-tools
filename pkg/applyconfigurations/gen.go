@@ -21,7 +21,10 @@ import (
 	"fmt"
 	"go/ast"
 	"go/format"
+	"go/types"
 	"io"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -98,6 +101,11 @@ func genObjectInterface(info *markers.TypeInfo) bool {
 	return false
 }
 
+func groupAndPackageVersion(pkg string) string {
+	parts := strings.Split(pkg, "/")
+	return parts[len(parts)-2] + "/" + parts[len(parts)-1]
+}
+
 func (d Generator) Generate(ctx *genall.GenerationContext) error {
 	var headerText string
 
@@ -116,15 +124,65 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 		HeaderText: headerText,
 	}
 
+	var pkgList []*loader.Package
+	visited := make(map[string]*loader.Package)
+
+	//TODO|jefftree: Import variable might be better
+	crdRoot := ctx.Roots[0]
+
 	for _, root := range ctx.Roots {
-		outContents := objGenCtx.generateForPackage(root)
+		pkgList = append(pkgList, root)
+	}
+
+	for len(pkgList) != 0 {
+		pkg := pkgList[0]
+		pkgList = pkgList[1:]
+		if _, ok := visited[pkg.PkgPath]; ok {
+			continue
+		}
+
+		visited[pkg.PkgPath] = pkg
+
+		for _, imp := range pkg.Imports() {
+			// Only index k8s types
+			// TODO|jefftree:There must be a better way to filter this
+			if !strings.Contains(imp.PkgPath, "k8s.io") || (!strings.Contains(imp.PkgPath, "api/") && !strings.Contains(imp.PkgPath, "apis/")) {
+				continue
+			}
+			pkgList = append(pkgList, imp)
+		}
+	}
+
+	var eligibleTypes []types.Type
+	for _, pkg := range visited {
+		eligibleTypes = append(eligibleTypes, objGenCtx.generateEligibleTypes(pkg)...)
+	}
+
+	universe := Universe{
+		eligibleTypes: eligibleTypes,
+	}
+
+	basePath := filepath.Dir(crdRoot.CompiledGoFiles[0])
+
+	for _, pkg := range visited {
+		outContents := objGenCtx.generateForPackage(universe, pkg)
 		if outContents == nil {
 			continue
 		}
 
-		writeOut(ctx, root, outContents)
-	}
+		if pkg != ctx.Roots[0] {
+			desiredPath := basePath + "/ac/" + groupAndPackageVersion(pkg.PkgPath) + "/"
+			if _, err := os.Stat(desiredPath); os.IsNotExist(err) {
+				os.MkdirAll(desiredPath, os.ModePerm)
+			}
+			pkg.CompiledGoFiles[0] = desiredPath
+		} else {
+			pkg.CompiledGoFiles[0] = basePath + "/ac/"
+			os.MkdirAll(pkg.CompiledGoFiles[0], os.ModePerm)
+		}
+		writeOut(ctx, pkg, outContents)
 
+	}
 	return nil
 }
 
@@ -159,20 +217,31 @@ import (
 
 }
 
+func (ctx *ObjectGenCtx) generateEligibleTypes(root *loader.Package) []types.Type {
+	ctx.Checker.Check(root)
+	root.NeedTypesInfo()
+	var eligibleTypes []types.Type
+
+	if err := markers.EachType(ctx.Collector, root, func(info *markers.TypeInfo) {
+		if shouldBeApplyConfiguration(root, info) {
+			typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
+			eligibleTypes = append(eligibleTypes, typeInfo)
+		}
+	}); err != nil {
+		root.AddError(err)
+		return nil
+	}
+	return eligibleTypes
+}
+
+type Universe struct {
+	eligibleTypes []types.Type
+}
+
 // generateForPackage generates apply configuration implementations for
 // types in the given package, writing the formatted result to given writer.
 // May return nil if source could not be generated.
-func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
-	// allTypes, err := enabledOnPackage(ctx.Collector, root)
-	// if err != nil {
-	// 	root.AddError(err)
-	// 	return nil
-	// }
-
-	ctx.Checker.Check(root)
-
-	root.NeedTypesInfo()
-
+func (ctx *ObjectGenCtx) generateForPackage(universe Universe, root *loader.Package) []byte {
 	byType := make(map[string][]byte)
 	imports := &importsList{
 		byPath:  make(map[string]string),
@@ -187,7 +256,6 @@ func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
 		// not all types required a generate apply configuration. For example, no apply configuration
 		// type is needed for Quantity, IntOrString, RawExtension or Unknown.
 		if !shouldBeApplyConfiguration(root, info) {
-			//root.AddError(fmt.Errorf("skipping type: %v", info.Name)) // TODO(jpbetz): Remove
 			return
 		}
 
@@ -199,13 +267,13 @@ func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
 
 		// TODO|jefftree: Make this a CLI toggle between builder and go structs
 		if false {
-			copyCtx.GenerateStruct(root, info)
-			copyCtx.GenerateFieldsStruct(root, info)
+			copyCtx.GenerateStruct(&universe, root, info)
+			copyCtx.GenerateFieldsStruct(&universe, root, info)
 			for _, field := range info.Fields {
 				if field.Name != "" {
-					copyCtx.GenerateMemberSet(field, root, info)
-					copyCtx.GenerateMemberRemove(field, root, info)
-					copyCtx.GenerateMemberGet(field, root, info)
+					copyCtx.GenerateMemberSet(&universe, field, root, info)
+					copyCtx.GenerateMemberRemove(&universe, field, root, info)
+					copyCtx.GenerateMemberGet(&universe, field, root, info)
 				}
 			}
 			copyCtx.GenerateToUnstructured(root, info)
@@ -215,10 +283,10 @@ func (ctx *ObjectGenCtx) generateForPackage(root *loader.Package) []byte {
 			copyCtx.GeneratePrePostFunctions(root, info)
 
 		} else {
-			copyCtx.GenerateTypesFor(root, info)
+			copyCtx.GenerateTypesFor(&universe, root, info)
 			copyCtx.GenerateStructConstructor(root, info)
 		}
-		copyCtx.GenerateListMapAlias(root, info)
+		// copyCtx.GenerateListMapAlias(root, info)
 
 		outBytes := outContent.Bytes()
 		if len(outBytes) > 0 {
@@ -268,7 +336,7 @@ func writeTypes(pkg *loader.Package, out io.Writer, byType map[string][]byte) {
 // writeFormatted outputs the given code, after gofmt-ing it.  If we couldn't gofmt,
 // we write the unformatted code for debugging purposes.
 func writeOut(ctx *genall.GenerationContext, root *loader.Package, outBytes []byte) {
-	outputFile, err := ctx.Open(root, "zz_generated.applyconfigurations.go")
+	outputFile, err := ctx.Open(root, root.Name+"_zz_generated.applyconfigurations.go")
 	if err != nil {
 		root.AddError(err)
 		return
