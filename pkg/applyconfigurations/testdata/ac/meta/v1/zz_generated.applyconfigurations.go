@@ -88,6 +88,23 @@ func APIVersions() *APIVersionsApplyConfiguration {
 	return &APIVersionsApplyConfiguration{}
 }
 
+// ConditionApplyConfiguration represents a declarative configuration of the Condition type for use
+// with apply.
+type ConditionApplyConfiguration struct {
+	Type               *string                 `json:"type,omitempty"`
+	Status             *metav1.ConditionStatus `json:"status,omitempty"`
+	ObservedGeneration *int64                  `json:"observedGeneration,omitempty"`
+	LastTransitionTime *metav1.Time            `json:"lastTransitionTime,omitempty"`
+	Reason             *string                 `json:"reason,omitempty"`
+	Message            *string                 `json:"message,omitempty"`
+}
+
+// ConditionApplyConfiguration represents a declarative configuration of the Condition type for use
+// with apply.
+func Condition() *ConditionApplyConfiguration {
+	return &ConditionApplyConfiguration{}
+}
+
 // CreateOptionsApplyConfiguration represents a declarative configuration of the CreateOptions type for use
 // with apply.
 type CreateOptionsApplyConfiguration struct {
@@ -286,14 +303,15 @@ func ListMeta() *ListMetaApplyConfiguration {
 // with apply.
 type ListOptionsApplyConfiguration struct {
 	TypeMetaApplyConfiguration `json:",inline"`
-	LabelSelector              *string `json:"labelSelector,omitempty"`
-	FieldSelector              *string `json:"fieldSelector,omitempty"`
-	Watch                      *bool   `json:"watch,omitempty"`
-	AllowWatchBookmarks        *bool   `json:"allowWatchBookmarks,omitempty"`
-	ResourceVersion            *string `json:"resourceVersion,omitempty"`
-	TimeoutSeconds             *int64  `json:"timeoutSeconds,omitempty"`
-	Limit                      *int64  `json:"limit,omitempty"`
-	Continue                   *string `json:"continue,omitempty"`
+	LabelSelector              *string                      `json:"labelSelector,omitempty"`
+	FieldSelector              *string                      `json:"fieldSelector,omitempty"`
+	Watch                      *bool                        `json:"watch,omitempty"`
+	AllowWatchBookmarks        *bool                        `json:"allowWatchBookmarks,omitempty"`
+	ResourceVersion            *string                      `json:"resourceVersion,omitempty"`
+	ResourceVersionMatch       *metav1.ResourceVersionMatch `json:"resourceVersionMatch,omitempty"`
+	TimeoutSeconds             *int64                       `json:"timeoutSeconds,omitempty"`
+	Limit                      *int64                       `json:"limit,omitempty"`
+	Continue                   *string                      `json:"continue,omitempty"`
 }
 
 // ListOptionsApplyConfiguration represents a declarative configuration of the ListOptions type for use

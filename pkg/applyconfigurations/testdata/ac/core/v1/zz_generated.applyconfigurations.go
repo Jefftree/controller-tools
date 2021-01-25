@@ -776,6 +776,19 @@ func EphemeralContainers() *EphemeralContainersApplyConfiguration {
 	return &EphemeralContainersApplyConfiguration{}
 }
 
+// EphemeralVolumeSourceApplyConfiguration represents a declarative configuration of the EphemeralVolumeSource type for use
+// with apply.
+type EphemeralVolumeSourceApplyConfiguration struct {
+	VolumeClaimTemplate *PersistentVolumeClaimTemplateApplyConfiguration `json:"volumeClaimTemplate,omitempty"`
+	ReadOnly            *bool                                            `json:"readOnly,omitempty"`
+}
+
+// EphemeralVolumeSourceApplyConfiguration represents a declarative configuration of the EphemeralVolumeSource type for use
+// with apply.
+func EphemeralVolumeSource() *EphemeralVolumeSourceApplyConfiguration {
+	return &EphemeralVolumeSourceApplyConfiguration{}
+}
+
 // EventApplyConfiguration represents a declarative configuration of the Event type for use
 // with apply.
 type EventApplyConfiguration struct {
@@ -820,9 +833,8 @@ func EventList() *EventListApplyConfiguration {
 // EventSeriesApplyConfiguration represents a declarative configuration of the EventSeries type for use
 // with apply.
 type EventSeriesApplyConfiguration struct {
-	Count            *int32                   `json:"count,omitempty"`
-	LastObservedTime *apismetav1.MicroTime    `json:"lastObservedTime,omitempty"`
-	State            *corev1.EventSeriesState `json:"state,omitempty"`
+	Count            *int32                `json:"count,omitempty"`
+	LastObservedTime *apismetav1.MicroTime `json:"lastObservedTime,omitempty"`
 }
 
 // EventSeriesApplyConfiguration represents a declarative configuration of the EventSeries type for use
@@ -1175,8 +1187,9 @@ func LimitRangeSpec() *LimitRangeSpecApplyConfiguration {
 // LoadBalancerIngressApplyConfiguration represents a declarative configuration of the LoadBalancerIngress type for use
 // with apply.
 type LoadBalancerIngressApplyConfiguration struct {
-	IP       *string `json:"ip,omitempty"`
-	Hostname *string `json:"hostname,omitempty"`
+	IP       *string                         `json:"ip,omitempty"`
+	Hostname *string                         `json:"hostname,omitempty"`
+	Ports    *[]PortStatusApplyConfiguration `json:"ports,omitempty"`
 }
 
 // LoadBalancerIngressApplyConfiguration represents a declarative configuration of the LoadBalancerIngress type for use
@@ -1655,6 +1668,19 @@ func PersistentVolumeClaimStatus() *PersistentVolumeClaimStatusApplyConfiguratio
 	return &PersistentVolumeClaimStatusApplyConfiguration{}
 }
 
+// PersistentVolumeClaimTemplateApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimTemplate type for use
+// with apply.
+type PersistentVolumeClaimTemplateApplyConfiguration struct {
+	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
+	Spec                                 *PersistentVolumeClaimSpecApplyConfiguration `json:"spec,omitempty"`
+}
+
+// PersistentVolumeClaimTemplateApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimTemplate type for use
+// with apply.
+func PersistentVolumeClaimTemplate() *PersistentVolumeClaimTemplateApplyConfiguration {
+	return &PersistentVolumeClaimTemplateApplyConfiguration{}
+}
+
 // PersistentVolumeClaimVolumeSourceApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimVolumeSource type for use
 // with apply.
 type PersistentVolumeClaimVolumeSourceApplyConfiguration struct {
@@ -1993,6 +2019,7 @@ type PodSecurityContextApplyConfiguration struct {
 	FSGroup             *int64                                           `json:"fsGroup,omitempty"`
 	Sysctls             *[]SysctlApplyConfiguration                      `json:"sysctls,omitempty"`
 	FSGroupChangePolicy *corev1.PodFSGroupChangePolicy                   `json:"fsGroupChangePolicy,omitempty"`
+	SeccompProfile      *SeccompProfileApplyConfiguration                `json:"seccompProfile,omitempty"`
 }
 
 // PodSecurityContextApplyConfiguration represents a declarative configuration of the PodSecurityContext type for use
@@ -2050,6 +2077,7 @@ type PodSpecApplyConfiguration struct {
 	PreemptionPolicy              *corev1.PreemptionPolicy                      `json:"preemptionPolicy,omitempty"`
 	Overhead                      *corev1.ResourceList                          `json:"overhead,omitempty"`
 	TopologySpreadConstraints     *[]TopologySpreadConstraintApplyConfiguration `json:"topologySpreadConstraints,omitempty"`
+	SetHostnameAsFQDN             *bool                                         `json:"setHostnameAsFQDN,omitempty"`
 }
 
 // PodSpecApplyConfiguration represents a declarative configuration of the PodSpec type for use
@@ -2135,6 +2163,20 @@ type PodTemplateSpecApplyConfiguration struct {
 // with apply.
 func PodTemplateSpec() *PodTemplateSpecApplyConfiguration {
 	return &PodTemplateSpecApplyConfiguration{}
+}
+
+// PortStatusApplyConfiguration represents a declarative configuration of the PortStatus type for use
+// with apply.
+type PortStatusApplyConfiguration struct {
+	Port     *int32           `json:"port,omitempty"`
+	Protocol *corev1.Protocol `json:"protocol,omitempty"`
+	Error    *string          `json:"error,omitempty"`
+}
+
+// PortStatusApplyConfiguration represents a declarative configuration of the PortStatus type for use
+// with apply.
+func PortStatus() *PortStatusApplyConfiguration {
+	return &PortStatusApplyConfiguration{}
 }
 
 // PortworxVolumeSourceApplyConfiguration represents a declarative configuration of the PortworxVolumeSource type for use
@@ -2534,6 +2576,19 @@ func ScopedResourceSelectorRequirement() *ScopedResourceSelectorRequirementApply
 	return &ScopedResourceSelectorRequirementApplyConfiguration{}
 }
 
+// SeccompProfileApplyConfiguration represents a declarative configuration of the SeccompProfile type for use
+// with apply.
+type SeccompProfileApplyConfiguration struct {
+	Type             *corev1.SeccompProfileType `json:"type,omitempty"`
+	LocalhostProfile *string                    `json:"localhostProfile,omitempty"`
+}
+
+// SeccompProfileApplyConfiguration represents a declarative configuration of the SeccompProfile type for use
+// with apply.
+func SeccompProfile() *SeccompProfileApplyConfiguration {
+	return &SeccompProfileApplyConfiguration{}
+}
+
 // SecretApplyConfiguration represents a declarative configuration of the Secret type for use
 // with apply.
 type SecretApplyConfiguration struct {
@@ -2647,6 +2702,7 @@ type SecurityContextApplyConfiguration struct {
 	ReadOnlyRootFilesystem   *bool                                            `json:"readOnlyRootFilesystem,omitempty"`
 	AllowPrivilegeEscalation *bool                                            `json:"allowPrivilegeEscalation,omitempty"`
 	ProcMount                *corev1.ProcMountType                            `json:"procMount,omitempty"`
+	SeccompProfile           *SeccompProfileApplyConfiguration                `json:"seccompProfile,omitempty"`
 }
 
 // SecurityContextApplyConfiguration represents a declarative configuration of the SecurityContext type for use
@@ -2774,21 +2830,24 @@ func ServiceProxyOptions() *ServiceProxyOptionsApplyConfiguration {
 // ServiceSpecApplyConfiguration represents a declarative configuration of the ServiceSpec type for use
 // with apply.
 type ServiceSpecApplyConfiguration struct {
-	Ports                    *[]ServicePortApplyConfiguration         `json:"ports,omitempty"`
-	Selector                 *map[string]string                       `json:"selector,omitempty"`
-	ClusterIP                *string                                  `json:"clusterIP,omitempty"`
-	Type                     *corev1.ServiceType                      `json:"type,omitempty"`
-	ExternalIPs              *[]string                                `json:"externalIPs,omitempty"`
-	SessionAffinity          *corev1.ServiceAffinity                  `json:"sessionAffinity,omitempty"`
-	LoadBalancerIP           *string                                  `json:"loadBalancerIP,omitempty"`
-	LoadBalancerSourceRanges *[]string                                `json:"loadBalancerSourceRanges,omitempty"`
-	ExternalName             *string                                  `json:"externalName,omitempty"`
-	ExternalTrafficPolicy    *corev1.ServiceExternalTrafficPolicyType `json:"externalTrafficPolicy,omitempty"`
-	HealthCheckNodePort      *int32                                   `json:"healthCheckNodePort,omitempty"`
-	PublishNotReadyAddresses *bool                                    `json:"publishNotReadyAddresses,omitempty"`
-	SessionAffinityConfig    *SessionAffinityConfigApplyConfiguration `json:"sessionAffinityConfig,omitempty"`
-	IPFamily                 *corev1.IPFamily                         `json:"ipFamily,omitempty"`
-	TopologyKeys             *[]string                                `json:"topologyKeys,omitempty"`
+	Ports                         *[]ServicePortApplyConfiguration         `json:"ports,omitempty"`
+	Selector                      *map[string]string                       `json:"selector,omitempty"`
+	ClusterIP                     *string                                  `json:"clusterIP,omitempty"`
+	ClusterIPs                    *[]string                                `json:"clusterIPs,omitempty"`
+	Type                          *corev1.ServiceType                      `json:"type,omitempty"`
+	ExternalIPs                   *[]string                                `json:"externalIPs,omitempty"`
+	SessionAffinity               *corev1.ServiceAffinity                  `json:"sessionAffinity,omitempty"`
+	LoadBalancerIP                *string                                  `json:"loadBalancerIP,omitempty"`
+	LoadBalancerSourceRanges      *[]string                                `json:"loadBalancerSourceRanges,omitempty"`
+	ExternalName                  *string                                  `json:"externalName,omitempty"`
+	ExternalTrafficPolicy         *corev1.ServiceExternalTrafficPolicyType `json:"externalTrafficPolicy,omitempty"`
+	HealthCheckNodePort           *int32                                   `json:"healthCheckNodePort,omitempty"`
+	PublishNotReadyAddresses      *bool                                    `json:"publishNotReadyAddresses,omitempty"`
+	SessionAffinityConfig         *SessionAffinityConfigApplyConfiguration `json:"sessionAffinityConfig,omitempty"`
+	TopologyKeys                  *[]string                                `json:"topologyKeys,omitempty"`
+	IPFamilies                    *[]corev1.IPFamily                       `json:"ipFamilies,omitempty"`
+	IPFamilyPolicy                *corev1.IPFamilyPolicyType               `json:"ipFamilyPolicy,omitempty"`
+	AllocateLoadBalancerNodePorts *bool                                    `json:"allocateLoadBalancerNodePorts,omitempty"`
 }
 
 // ServiceSpecApplyConfiguration represents a declarative configuration of the ServiceSpec type for use
@@ -2801,6 +2860,7 @@ func ServiceSpec() *ServiceSpecApplyConfiguration {
 // with apply.
 type ServiceStatusApplyConfiguration struct {
 	LoadBalancer *LoadBalancerStatusApplyConfiguration `json:"loadBalancer,omitempty"`
+	Conditions   *[]metav1.ConditionApplyConfiguration `json:"conditions,omitempty"`
 }
 
 // ServiceStatusApplyConfiguration represents a declarative configuration of the ServiceStatus type for use
@@ -3065,6 +3125,7 @@ type VolumeSourceApplyConfiguration struct {
 	ScaleIO               *ScaleIOVolumeSourceApplyConfiguration               `json:"scaleIO,omitempty"`
 	StorageOS             *StorageOSVolumeSourceApplyConfiguration             `json:"storageos,omitempty"`
 	CSI                   *CSIVolumeSourceApplyConfiguration                   `json:"csi,omitempty"`
+	Ephemeral             *EphemeralVolumeSourceApplyConfiguration             `json:"ephemeral,omitempty"`
 }
 
 // VolumeSourceApplyConfiguration represents a declarative configuration of the VolumeSource type for use

@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-tools/pkg/genall"
 	"sigs.k8s.io/controller-tools/pkg/loader"
 	"sigs.k8s.io/controller-tools/pkg/markers"
+	"golang.org/x/tools/go/packages"
 )
 
 // Based on deepcopy gen but with legacy marker support removed.
@@ -105,13 +106,17 @@ func groupAndPackageVersion(pkg string) string {
 	return parts[len(parts)-2] + "/" + parts[len(parts)-1]
 }
 
-func updatePackagePathForOutput(universe Universe, pkg *loader.Package) {
+func updatePackagePathForOutput(universe Universe, pkg *loader.Package) *loader.Package {
+	newPkg := &loader.Package{Package: &packages.Package{}}
+
 	if filepath.Dir(pkg.CompiledGoFiles[0]) == universe.baseFilePath {
-		pkg.CompiledGoFiles[0] = universe.baseFilePath + "/" + universe.importPathSuffix + "/"
+		newPkg.CompiledGoFiles = append(newPkg.CompiledGoFiles, universe.baseFilePath + "/" + universe.importPathSuffix + "/")
 	} else {
 		desiredPath := universe.baseFilePath + "/" + universe.importPathSuffix + "/" + groupAndPackageVersion(pkg.PkgPath) + "/"
-		pkg.CompiledGoFiles[0] = desiredPath
+		newPkg.CompiledGoFiles = append(newPkg.CompiledGoFiles, desiredPath)
+		// pkg.CompiledGoFiles[0] = desiredPath
 	}
+	return newPkg
 }
 
 func (d Generator) Generate(ctx *genall.GenerationContext) error {
@@ -179,9 +184,8 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 			continue
 		}
 
-		// TODO|jefftree: Changing the import path affects deepcopy as well. Is this the correct approach?
-		updatePackagePathForOutput(universe, pkg)
-		writeOut(ctx, pkg, outContents)
+		newPkg := updatePackagePathForOutput(universe, pkg)
+		writeOut(ctx, newPkg, outContents)
 
 	}
 	return nil
