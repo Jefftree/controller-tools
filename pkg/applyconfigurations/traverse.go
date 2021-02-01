@@ -136,7 +136,14 @@ type namingInfo struct {
 	nameOverride string
 }
 
-// func ChangeImport()
+
+
+func (n *namingInfo) RootType(universe *Universe, basePkg *loader.Package, imports *importsList) string {
+	typeInfo := n.typeInfo.(*types.Named)
+			alias := imports.NeedImport(loader.NonVendorPath(basePkg.Types.Path()))
+	return alias + "." + typeInfo.Obj().Name()
+}
+
 // Syntax calculates the code representation of the given type or name,
 // and returns the apply representation
 func (n *namingInfo) Syntax(universe *Universe, basePkg *loader.Package, imports *importsList) string {
@@ -164,6 +171,10 @@ func (n *namingInfo) Syntax(universe *Universe, basePkg *loader.Package, imports
 
 		var exists bool
 		for _, b := range universe.eligibleTypes {
+			if typeName.Name() == "ObjectMeta" || typeName.Name() == "TypeMeta" {
+				exists = false
+				break
+			}
 			if b == typeInfo {
 				exists = true
 				break
@@ -171,11 +182,12 @@ func (n *namingInfo) Syntax(universe *Universe, basePkg *loader.Package, imports
 		}
 		if !exists {
 			//TODO|jefftree: This is a hack, we need some way of specifying the import path for the root package
-			if otherPkg.Path() == "command-line-arguments" {
-				path := universe.baseImportPath
-				alias := imports.NeedImport(path)
-				return alias + "." + typeName.Name()
-			}
+			// if otherPkg.Path() == "command-line-arguments" {
+			// 	fmt.Println(basePkg)
+			// 	path := universe.baseImportPath
+			// 	alias := imports.NeedImport(path)
+			// 	return alias + "." + typeName.Name()
+			// }
 			alias := imports.NeedImport(loader.NonVendorPath(otherPkg.Path()))
 			return alias + "." + typeName.Name()
 		} else {
@@ -239,12 +251,14 @@ func (c *applyConfigurationMaker) GenerateTypesFor(universe *Universe, root *loa
 		fieldNamingInfo := namingInfo{typeInfo: fieldType}
 		fieldTypeString := fieldNamingInfo.Syntax(universe, root, c.importsList)
 		if tags, ok := lookupJsonTags(field); ok {
-			if tags.inline {
+			if field.Name == "" {
 				c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
-		} else if isPointer(fieldNamingInfo.typeInfo) {
+			} else if tags.inline {
+				c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
+			} else if isPointer(fieldNamingInfo.typeInfo) {
 				tags.omitempty = true
 				c.Linef("%s %s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
-		} else {
+			} else {
 				tags.omitempty = true
 				c.Linef("%s *%s `json:\"%s\"`", fieldName, fieldTypeString, tags.String())
 			}
@@ -252,6 +266,29 @@ func (c *applyConfigurationMaker) GenerateTypesFor(universe *Universe, root *loa
 	}
 	c.Linef("}")
 }
+
+func (c *applyConfigurationMaker) GenerateTypeGetter(universe *Universe, root *loader.Package, info *markers.TypeInfo) {
+
+	runtime := c.NeedImport("k8s.io/apimachinery/pkg/runtime")
+	typeInfo := root.TypesInfo.TypeOf(info.RawSpec.Name)
+		typeNamingInfo := namingInfo{typeInfo: typeInfo}
+		typeString := typeNamingInfo.RootType(universe, root, c.importsList)
+	c.Linef("func (ac * %sApplyConfiguration) GetReferenceType ()  %s.Object {", info.Name, runtime)
+	c.Linef("return &%s{}", typeString)
+	c.Linef("}")
+
+
+	c.Linef("func (ac * %[1]sApplyConfiguration) DeepCopy ()  *%[1]sApplyConfiguration {", info.Name)
+	c.Linef("return ac")
+	c.Linef("}")
+
+		c.Linef("func (ac * %[1]sApplyConfiguration) DeepCopyObject ()  %s.Object {", info.Name, runtime)
+	c.Linef("return ac")
+	c.Linef("}")
+}
+
+
+
 
 func generatePrivateName(s string) string {
 	if len(s) == 0 {
@@ -519,6 +556,14 @@ type %[1]sMap map[string]%[1]sApplyConfiguration
 
 	c.Linef(listAlias, info.Name)
 	c.Linef(mapAlias, info.Name)
+}
+
+func isRootType(info *markers.TypeInfo) bool {
+	objectEnabled := info.Markers.Get(isObjectMarker.Name)
+	if objectEnabled != nil {
+		return objectEnabled.(bool)
+	}
+	return false
 }
 
 // shouldBeApplyConfiguration checks if we're supposed to make apply configurations for the given type.

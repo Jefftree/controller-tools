@@ -6,19 +6,19 @@ package v1beta1
 
 import (
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	batchv1 "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/batch/v1"
 	corev1 "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/core/v1"
-	v1 "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/meta/v1"
+	metav1 "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/meta/v1"
 )
 
 // CronJobApplyConfiguration represents a declarative configuration of the CronJob type for use
 // with apply.
 type CronJobApplyConfiguration struct {
-	v1.TypeMetaApplyConfiguration    `json:",inline"`
-	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                             *CronJobSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                           *CronJobStatusApplyConfiguration `json:"status,omitempty"`
+	v1.TypeMeta   `json:",inline"`
+	v1.ObjectMeta `json:"metadata,omitempty"`
+	Spec          *CronJobSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status        *CronJobStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // CronJobApplyConfiguration represents a declarative configuration of the CronJob type for use
@@ -30,9 +30,9 @@ func CronJob() *CronJobApplyConfiguration {
 // CronJobListApplyConfiguration represents a declarative configuration of the CronJobList type for use
 // with apply.
 type CronJobListApplyConfiguration struct {
-	v1.TypeMetaApplyConfiguration  `json:",inline"`
-	*v1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                          *[]CronJobApplyConfiguration `json:"items,omitempty"`
+	v1.TypeMeta                       `json:",inline"`
+	metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                             *[]CronJobApplyConfiguration `json:"items,omitempty"`
 }
 
 // CronJobListApplyConfiguration represents a declarative configuration of the CronJobList type for use
@@ -63,7 +63,7 @@ func CronJobSpec() *CronJobSpecApplyConfiguration {
 // with apply.
 type CronJobStatusApplyConfiguration struct {
 	Active           *[]corev1.ObjectReferenceApplyConfiguration `json:"active,omitempty"`
-	LastScheduleTime *metav1.Time                                `json:"lastScheduleTime,omitempty"`
+	LastScheduleTime *v1.Time                                    `json:"lastScheduleTime,omitempty"`
 }
 
 // CronJobStatusApplyConfiguration represents a declarative configuration of the CronJobStatus type for use
@@ -75,9 +75,9 @@ func CronJobStatus() *CronJobStatusApplyConfiguration {
 // JobTemplateApplyConfiguration represents a declarative configuration of the JobTemplate type for use
 // with apply.
 type JobTemplateApplyConfiguration struct {
-	v1.TypeMetaApplyConfiguration    `json:",inline"`
-	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Template                         *JobTemplateSpecApplyConfiguration `json:"template,omitempty"`
+	v1.TypeMeta   `json:",inline"`
+	v1.ObjectMeta `json:"metadata,omitempty"`
+	Template      *JobTemplateSpecApplyConfiguration `json:"template,omitempty"`
 }
 
 // JobTemplateApplyConfiguration represents a declarative configuration of the JobTemplate type for use
@@ -89,8 +89,8 @@ func JobTemplate() *JobTemplateApplyConfiguration {
 // JobTemplateSpecApplyConfiguration represents a declarative configuration of the JobTemplateSpec type for use
 // with apply.
 type JobTemplateSpecApplyConfiguration struct {
-	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                             *batchv1.JobSpecApplyConfiguration `json:"spec,omitempty"`
+	v1.ObjectMeta `json:"metadata,omitempty"`
+	Spec          *batchv1.JobSpecApplyConfiguration `json:"spec,omitempty"`
 }
 
 // JobTemplateSpecApplyConfiguration represents a declarative configuration of the JobTemplateSpec type for use

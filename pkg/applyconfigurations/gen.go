@@ -24,13 +24,14 @@ import (
 	"go/types"
 	"io"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
+	"golang.org/x/tools/go/packages"
 	"sigs.k8s.io/controller-tools/pkg/genall"
 	"sigs.k8s.io/controller-tools/pkg/loader"
 	"sigs.k8s.io/controller-tools/pkg/markers"
-	"golang.org/x/tools/go/packages"
 )
 
 // Based on deepcopy gen but with legacy marker support removed.
@@ -106,15 +107,14 @@ func groupAndPackageVersion(pkg string) string {
 	return parts[len(parts)-2] + "/" + parts[len(parts)-1]
 }
 
-func updatePackagePathForOutput(universe Universe, pkg *loader.Package) *loader.Package {
+func createApplyConfigPackage(universe Universe, pkg *loader.Package) *loader.Package {
 	newPkg := &loader.Package{Package: &packages.Package{}}
 
 	if filepath.Dir(pkg.CompiledGoFiles[0]) == universe.baseFilePath {
-		newPkg.CompiledGoFiles = append(newPkg.CompiledGoFiles, universe.baseFilePath + "/" + universe.importPathSuffix + "/")
+		newPkg.CompiledGoFiles = append(newPkg.CompiledGoFiles, universe.baseFilePath+"/"+universe.importPathSuffix+"/")
 	} else {
 		desiredPath := universe.baseFilePath + "/" + universe.importPathSuffix + "/" + groupAndPackageVersion(pkg.PkgPath) + "/"
 		newPkg.CompiledGoFiles = append(newPkg.CompiledGoFiles, desiredPath)
-		// pkg.CompiledGoFiles[0] = desiredPath
 	}
 	return newPkg
 }
@@ -140,7 +140,7 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 	var pkgList []*loader.Package
 	visited := make(map[string]*loader.Package)
 
-	//TODO|jefftree: Import variable might be better
+	//TODO|jefftree: This might cause problems if multiple packages are provided
 	crdRoot := ctx.Roots[0]
 
 	for _, root := range ctx.Roots {
@@ -158,8 +158,8 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 
 		for _, imp := range pkg.Imports() {
 			// Only index k8s types
-			// TODO|jefftree:There must be a better way to filter this
-			if !strings.Contains(imp.PkgPath, "k8s.io") || (!strings.Contains(imp.PkgPath, "api/") && !strings.Contains(imp.PkgPath, "apis/")) {
+			match, _ := regexp.MatchString("k8s.io/.*apis?/.+", imp.PkgPath)
+			if !match {
 				continue
 			}
 			pkgList = append(pkgList, imp)
@@ -173,7 +173,7 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 
 	universe := Universe{
 		eligibleTypes:    eligibleTypes,
-		baseImportPath:   "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata",
+		baseImportPath:   crdRoot.PkgPath,
 		importPathSuffix: "ac",
 		baseFilePath:     filepath.Dir(crdRoot.CompiledGoFiles[0]),
 	}
@@ -184,9 +184,8 @@ func (d Generator) Generate(ctx *genall.GenerationContext) error {
 			continue
 		}
 
-		newPkg := updatePackagePathForOutput(universe, pkg)
+		newPkg := createApplyConfigPackage(universe, pkg)
 		writeOut(ctx, newPkg, outContents)
-
 	}
 	return nil
 }
@@ -293,6 +292,10 @@ func (ctx *ObjectGenCtx) generateForPackage(universe Universe, root *loader.Pack
 		} else {
 			copyCtx.GenerateTypesFor(&universe, root, info)
 			copyCtx.GenerateStructConstructor(root, info)
+		}
+
+		if isRootType(info) {
+			copyCtx.GenerateTypeGetter(&universe, root, info)
 		}
 
 		outBytes := outContent.Bytes()

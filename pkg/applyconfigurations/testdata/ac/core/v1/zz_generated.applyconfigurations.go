@@ -7,10 +7,10 @@ package v1
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	metav1 "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/meta/v1"
+	acmetav1 "sigs.k8s.io/controller-tools/pkg/applyconfigurations/testdata/ac/meta/v1"
 )
 
 // AWSElasticBlockStoreVolumeSourceApplyConfiguration represents a declarative configuration of the AWSElasticBlockStoreVolumeSource type for use
@@ -116,9 +116,9 @@ func AzureFileVolumeSource() *AzureFileVolumeSourceApplyConfiguration {
 // BindingApplyConfiguration represents a declarative configuration of the Binding type for use
 // with apply.
 type BindingApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Target                               *ObjectReferenceApplyConfiguration `json:"target,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Target            *ObjectReferenceApplyConfiguration `json:"target,omitempty"`
 }
 
 // BindingApplyConfiguration represents a declarative configuration of the Binding type for use
@@ -270,9 +270,9 @@ func ComponentCondition() *ComponentConditionApplyConfiguration {
 // ComponentStatusApplyConfiguration represents a declarative configuration of the ComponentStatus type for use
 // with apply.
 type ComponentStatusApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Conditions                           *[]ComponentConditionApplyConfiguration `json:"conditions,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Conditions        *[]ComponentConditionApplyConfiguration `json:"conditions,omitempty"`
 }
 
 // ComponentStatusApplyConfiguration represents a declarative configuration of the ComponentStatus type for use
@@ -284,9 +284,9 @@ func ComponentStatus() *ComponentStatusApplyConfiguration {
 // ComponentStatusListApplyConfiguration represents a declarative configuration of the ComponentStatusList type for use
 // with apply.
 type ComponentStatusListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]ComponentStatusApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]ComponentStatusApplyConfiguration `json:"items,omitempty"`
 }
 
 // ComponentStatusListApplyConfiguration represents a declarative configuration of the ComponentStatusList type for use
@@ -298,11 +298,11 @@ func ComponentStatusList() *ComponentStatusListApplyConfiguration {
 // ConfigMapApplyConfiguration represents a declarative configuration of the ConfigMap type for use
 // with apply.
 type ConfigMapApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Immutable                            *bool              `json:"immutable,omitempty"`
-	Data                                 *map[string]string `json:"data,omitempty"`
-	BinaryData                           *map[string][]byte `json:"binaryData,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Immutable         *bool              `json:"immutable,omitempty"`
+	Data              *map[string]string `json:"data,omitempty"`
+	BinaryData        *map[string][]byte `json:"binaryData,omitempty"`
 }
 
 // ConfigMapApplyConfiguration represents a declarative configuration of the ConfigMap type for use
@@ -341,9 +341,9 @@ func ConfigMapKeySelector() *ConfigMapKeySelectorApplyConfiguration {
 // ConfigMapListApplyConfiguration represents a declarative configuration of the ConfigMapList type for use
 // with apply.
 type ConfigMapListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]ConfigMapApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]ConfigMapApplyConfiguration `json:"items,omitempty"`
 }
 
 // ConfigMapListApplyConfiguration represents a declarative configuration of the ConfigMapList type for use
@@ -476,7 +476,7 @@ func ContainerState() *ContainerStateApplyConfiguration {
 // ContainerStateRunningApplyConfiguration represents a declarative configuration of the ContainerStateRunning type for use
 // with apply.
 type ContainerStateRunningApplyConfiguration struct {
-	StartedAt *apismetav1.Time `json:"startedAt,omitempty"`
+	StartedAt *metav1.Time `json:"startedAt,omitempty"`
 }
 
 // ContainerStateRunningApplyConfiguration represents a declarative configuration of the ContainerStateRunning type for use
@@ -488,13 +488,13 @@ func ContainerStateRunning() *ContainerStateRunningApplyConfiguration {
 // ContainerStateTerminatedApplyConfiguration represents a declarative configuration of the ContainerStateTerminated type for use
 // with apply.
 type ContainerStateTerminatedApplyConfiguration struct {
-	ExitCode    *int32           `json:"exitCode,omitempty"`
-	Signal      *int32           `json:"signal,omitempty"`
-	Reason      *string          `json:"reason,omitempty"`
-	Message     *string          `json:"message,omitempty"`
-	StartedAt   *apismetav1.Time `json:"startedAt,omitempty"`
-	FinishedAt  *apismetav1.Time `json:"finishedAt,omitempty"`
-	ContainerID *string          `json:"containerID,omitempty"`
+	ExitCode    *int32       `json:"exitCode,omitempty"`
+	Signal      *int32       `json:"signal,omitempty"`
+	Reason      *string      `json:"reason,omitempty"`
+	Message     *string      `json:"message,omitempty"`
+	StartedAt   *metav1.Time `json:"startedAt,omitempty"`
+	FinishedAt  *metav1.Time `json:"finishedAt,omitempty"`
+	ContainerID *string      `json:"containerID,omitempty"`
 }
 
 // ContainerStateTerminatedApplyConfiguration represents a declarative configuration of the ContainerStateTerminated type for use
@@ -648,9 +648,9 @@ func EndpointSubset() *EndpointSubsetApplyConfiguration {
 // EndpointsApplyConfiguration represents a declarative configuration of the Endpoints type for use
 // with apply.
 type EndpointsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Subsets                              *[]EndpointSubsetApplyConfiguration `json:"subsets,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Subsets           *[]EndpointSubsetApplyConfiguration `json:"subsets,omitempty"`
 }
 
 // EndpointsApplyConfiguration represents a declarative configuration of the Endpoints type for use
@@ -662,9 +662,9 @@ func Endpoints() *EndpointsApplyConfiguration {
 // EndpointsListApplyConfiguration represents a declarative configuration of the EndpointsList type for use
 // with apply.
 type EndpointsListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]EndpointsApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]EndpointsApplyConfiguration `json:"items,omitempty"`
 }
 
 // EndpointsListApplyConfiguration represents a declarative configuration of the EndpointsList type for use
@@ -765,9 +765,9 @@ func EphemeralContainerCommon() *EphemeralContainerCommonApplyConfiguration {
 // EphemeralContainersApplyConfiguration represents a declarative configuration of the EphemeralContainers type for use
 // with apply.
 type EphemeralContainersApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	EphemeralContainers                  *[]EphemeralContainerApplyConfiguration `json:"ephemeralContainers,omitempty"`
+	metav1.TypeMeta     `json:",inline"`
+	metav1.ObjectMeta   `json:"metadata,omitempty"`
+	EphemeralContainers *[]EphemeralContainerApplyConfiguration `json:"ephemeralContainers,omitempty"`
 }
 
 // EphemeralContainersApplyConfiguration represents a declarative configuration of the EphemeralContainers type for use
@@ -792,22 +792,22 @@ func EphemeralVolumeSource() *EphemeralVolumeSourceApplyConfiguration {
 // EventApplyConfiguration represents a declarative configuration of the Event type for use
 // with apply.
 type EventApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	InvolvedObject                       *ObjectReferenceApplyConfiguration `json:"involvedObject,omitempty"`
-	Reason                               *string                            `json:"reason,omitempty"`
-	Message                              *string                            `json:"message,omitempty"`
-	Source                               *EventSourceApplyConfiguration     `json:"source,omitempty"`
-	FirstTimestamp                       *apismetav1.Time                   `json:"firstTimestamp,omitempty"`
-	LastTimestamp                        *apismetav1.Time                   `json:"lastTimestamp,omitempty"`
-	Count                                *int32                             `json:"count,omitempty"`
-	Type                                 *string                            `json:"type,omitempty"`
-	EventTime                            *apismetav1.MicroTime              `json:"eventTime,omitempty"`
-	Series                               *EventSeriesApplyConfiguration     `json:"series,omitempty"`
-	Action                               *string                            `json:"action,omitempty"`
-	Related                              *ObjectReferenceApplyConfiguration `json:"related,omitempty"`
-	ReportingController                  *string                            `json:"reportingComponent,omitempty"`
-	ReportingInstance                    *string                            `json:"reportingInstance,omitempty"`
+	metav1.TypeMeta     `json:",inline"`
+	metav1.ObjectMeta   `json:"metadata"`
+	InvolvedObject      *ObjectReferenceApplyConfiguration `json:"involvedObject,omitempty"`
+	Reason              *string                            `json:"reason,omitempty"`
+	Message             *string                            `json:"message,omitempty"`
+	Source              *EventSourceApplyConfiguration     `json:"source,omitempty"`
+	FirstTimestamp      *metav1.Time                       `json:"firstTimestamp,omitempty"`
+	LastTimestamp       *metav1.Time                       `json:"lastTimestamp,omitempty"`
+	Count               *int32                             `json:"count,omitempty"`
+	Type                *string                            `json:"type,omitempty"`
+	EventTime           *metav1.MicroTime                  `json:"eventTime,omitempty"`
+	Series              *EventSeriesApplyConfiguration     `json:"series,omitempty"`
+	Action              *string                            `json:"action,omitempty"`
+	Related             *ObjectReferenceApplyConfiguration `json:"related,omitempty"`
+	ReportingController *string                            `json:"reportingComponent,omitempty"`
+	ReportingInstance   *string                            `json:"reportingInstance,omitempty"`
 }
 
 // EventApplyConfiguration represents a declarative configuration of the Event type for use
@@ -819,9 +819,9 @@ func Event() *EventApplyConfiguration {
 // EventListApplyConfiguration represents a declarative configuration of the EventList type for use
 // with apply.
 type EventListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]EventApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]EventApplyConfiguration `json:"items,omitempty"`
 }
 
 // EventListApplyConfiguration represents a declarative configuration of the EventList type for use
@@ -833,8 +833,8 @@ func EventList() *EventListApplyConfiguration {
 // EventSeriesApplyConfiguration represents a declarative configuration of the EventSeries type for use
 // with apply.
 type EventSeriesApplyConfiguration struct {
-	Count            *int32                `json:"count,omitempty"`
-	LastObservedTime *apismetav1.MicroTime `json:"lastObservedTime,omitempty"`
+	Count            *int32            `json:"count,omitempty"`
+	LastObservedTime *metav1.MicroTime `json:"lastObservedTime,omitempty"`
 }
 
 // EventSeriesApplyConfiguration represents a declarative configuration of the EventSeries type for use
@@ -1130,9 +1130,9 @@ func Lifecycle() *LifecycleApplyConfiguration {
 // LimitRangeApplyConfiguration represents a declarative configuration of the LimitRange type for use
 // with apply.
 type LimitRangeApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *LimitRangeSpecApplyConfiguration `json:"spec,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *LimitRangeSpecApplyConfiguration `json:"spec,omitempty"`
 }
 
 // LimitRangeApplyConfiguration represents a declarative configuration of the LimitRange type for use
@@ -1161,9 +1161,9 @@ func LimitRangeItem() *LimitRangeItemApplyConfiguration {
 // LimitRangeListApplyConfiguration represents a declarative configuration of the LimitRangeList type for use
 // with apply.
 type LimitRangeListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]LimitRangeApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]LimitRangeApplyConfiguration `json:"items,omitempty"`
 }
 
 // LimitRangeListApplyConfiguration represents a declarative configuration of the LimitRangeList type for use
@@ -1252,10 +1252,10 @@ func NFSVolumeSource() *NFSVolumeSourceApplyConfiguration {
 // NamespaceApplyConfiguration represents a declarative configuration of the Namespace type for use
 // with apply.
 type NamespaceApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *NamespaceSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *NamespaceStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *NamespaceSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *NamespaceStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // NamespaceApplyConfiguration represents a declarative configuration of the Namespace type for use
@@ -1269,7 +1269,7 @@ func Namespace() *NamespaceApplyConfiguration {
 type NamespaceConditionApplyConfiguration struct {
 	Type               *corev1.NamespaceConditionType `json:"type,omitempty"`
 	Status             *corev1.ConditionStatus        `json:"status,omitempty"`
-	LastTransitionTime *apismetav1.Time               `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime *metav1.Time                   `json:"lastTransitionTime,omitempty"`
 	Reason             *string                        `json:"reason,omitempty"`
 	Message            *string                        `json:"message,omitempty"`
 }
@@ -1283,9 +1283,9 @@ func NamespaceCondition() *NamespaceConditionApplyConfiguration {
 // NamespaceListApplyConfiguration represents a declarative configuration of the NamespaceList type for use
 // with apply.
 type NamespaceListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]NamespaceApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]NamespaceApplyConfiguration `json:"items,omitempty"`
 }
 
 // NamespaceListApplyConfiguration represents a declarative configuration of the NamespaceList type for use
@@ -1322,10 +1322,10 @@ func NamespaceStatus() *NamespaceStatusApplyConfiguration {
 // NodeApplyConfiguration represents a declarative configuration of the Node type for use
 // with apply.
 type NodeApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *NodeSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *NodeStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *NodeSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *NodeStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // NodeApplyConfiguration represents a declarative configuration of the Node type for use
@@ -1365,8 +1365,8 @@ func NodeAffinity() *NodeAffinityApplyConfiguration {
 type NodeConditionApplyConfiguration struct {
 	Type               *corev1.NodeConditionType `json:"type,omitempty"`
 	Status             *corev1.ConditionStatus   `json:"status,omitempty"`
-	LastHeartbeatTime  *apismetav1.Time          `json:"lastHeartbeatTime,omitempty"`
-	LastTransitionTime *apismetav1.Time          `json:"lastTransitionTime,omitempty"`
+	LastHeartbeatTime  *metav1.Time              `json:"lastHeartbeatTime,omitempty"`
+	LastTransitionTime *metav1.Time              `json:"lastTransitionTime,omitempty"`
 	Reason             *string                   `json:"reason,omitempty"`
 	Message            *string                   `json:"message,omitempty"`
 }
@@ -1419,9 +1419,9 @@ func NodeDaemonEndpoints() *NodeDaemonEndpointsApplyConfiguration {
 // NodeListApplyConfiguration represents a declarative configuration of the NodeList type for use
 // with apply.
 type NodeListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]NodeApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]NodeApplyConfiguration `json:"items,omitempty"`
 }
 
 // NodeListApplyConfiguration represents a declarative configuration of the NodeList type for use
@@ -1433,8 +1433,8 @@ func NodeList() *NodeListApplyConfiguration {
 // NodeProxyOptionsApplyConfiguration represents a declarative configuration of the NodeProxyOptions type for use
 // with apply.
 type NodeProxyOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Path                              *string `json:"path,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Path            *string `json:"path,omitempty"`
 }
 
 // NodeProxyOptionsApplyConfiguration represents a declarative configuration of the NodeProxyOptions type for use
@@ -1577,10 +1577,10 @@ func ObjectReference() *ObjectReferenceApplyConfiguration {
 // PersistentVolumeApplyConfiguration represents a declarative configuration of the PersistentVolume type for use
 // with apply.
 type PersistentVolumeApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *PersistentVolumeSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *PersistentVolumeStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *PersistentVolumeSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *PersistentVolumeStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // PersistentVolumeApplyConfiguration represents a declarative configuration of the PersistentVolume type for use
@@ -1592,10 +1592,10 @@ func PersistentVolume() *PersistentVolumeApplyConfiguration {
 // PersistentVolumeClaimApplyConfiguration represents a declarative configuration of the PersistentVolumeClaim type for use
 // with apply.
 type PersistentVolumeClaimApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *PersistentVolumeClaimSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *PersistentVolumeClaimStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *PersistentVolumeClaimSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *PersistentVolumeClaimStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // PersistentVolumeClaimApplyConfiguration represents a declarative configuration of the PersistentVolumeClaim type for use
@@ -1609,8 +1609,8 @@ func PersistentVolumeClaim() *PersistentVolumeClaimApplyConfiguration {
 type PersistentVolumeClaimConditionApplyConfiguration struct {
 	Type               *corev1.PersistentVolumeClaimConditionType `json:"type,omitempty"`
 	Status             *corev1.ConditionStatus                    `json:"status,omitempty"`
-	LastProbeTime      *apismetav1.Time                           `json:"lastProbeTime,omitempty"`
-	LastTransitionTime *apismetav1.Time                           `json:"lastTransitionTime,omitempty"`
+	LastProbeTime      *metav1.Time                               `json:"lastProbeTime,omitempty"`
+	LastTransitionTime *metav1.Time                               `json:"lastTransitionTime,omitempty"`
 	Reason             *string                                    `json:"reason,omitempty"`
 	Message            *string                                    `json:"message,omitempty"`
 }
@@ -1624,9 +1624,9 @@ func PersistentVolumeClaimCondition() *PersistentVolumeClaimConditionApplyConfig
 // PersistentVolumeClaimListApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimList type for use
 // with apply.
 type PersistentVolumeClaimListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]PersistentVolumeClaimApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]PersistentVolumeClaimApplyConfiguration `json:"items,omitempty"`
 }
 
 // PersistentVolumeClaimListApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimList type for use
@@ -1639,7 +1639,7 @@ func PersistentVolumeClaimList() *PersistentVolumeClaimListApplyConfiguration {
 // with apply.
 type PersistentVolumeClaimSpecApplyConfiguration struct {
 	AccessModes      *[]corev1.PersistentVolumeAccessMode         `json:"accessModes,omitempty"`
-	Selector         *metav1.LabelSelectorApplyConfiguration      `json:"selector,omitempty"`
+	Selector         *acmetav1.LabelSelectorApplyConfiguration    `json:"selector,omitempty"`
 	Resources        *ResourceRequirementsApplyConfiguration      `json:"resources,omitempty"`
 	VolumeName       *string                                      `json:"volumeName,omitempty"`
 	StorageClassName *string                                      `json:"storageClassName,omitempty"`
@@ -1671,8 +1671,8 @@ func PersistentVolumeClaimStatus() *PersistentVolumeClaimStatusApplyConfiguratio
 // PersistentVolumeClaimTemplateApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimTemplate type for use
 // with apply.
 type PersistentVolumeClaimTemplateApplyConfiguration struct {
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *PersistentVolumeClaimSpecApplyConfiguration `json:"spec,omitempty"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *PersistentVolumeClaimSpecApplyConfiguration `json:"spec,omitempty"`
 }
 
 // PersistentVolumeClaimTemplateApplyConfiguration represents a declarative configuration of the PersistentVolumeClaimTemplate type for use
@@ -1697,9 +1697,9 @@ func PersistentVolumeClaimVolumeSource() *PersistentVolumeClaimVolumeSourceApply
 // PersistentVolumeListApplyConfiguration represents a declarative configuration of the PersistentVolumeList type for use
 // with apply.
 type PersistentVolumeListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]PersistentVolumeApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]PersistentVolumeApplyConfiguration `json:"items,omitempty"`
 }
 
 // PersistentVolumeListApplyConfiguration represents a declarative configuration of the PersistentVolumeList type for use
@@ -1791,10 +1791,10 @@ func PhotonPersistentDiskVolumeSource() *PhotonPersistentDiskVolumeSourceApplyCo
 // PodApplyConfiguration represents a declarative configuration of the Pod type for use
 // with apply.
 type PodApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *PodSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *PodStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *PodSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *PodStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // PodApplyConfiguration represents a declarative configuration of the Pod type for use
@@ -1819,9 +1819,9 @@ func PodAffinity() *PodAffinityApplyConfiguration {
 // PodAffinityTermApplyConfiguration represents a declarative configuration of the PodAffinityTerm type for use
 // with apply.
 type PodAffinityTermApplyConfiguration struct {
-	LabelSelector *metav1.LabelSelectorApplyConfiguration `json:"labelSelector,omitempty"`
-	Namespaces    *[]string                               `json:"namespaces,omitempty"`
-	TopologyKey   *string                                 `json:"topologyKey,omitempty"`
+	LabelSelector *acmetav1.LabelSelectorApplyConfiguration `json:"labelSelector,omitempty"`
+	Namespaces    *[]string                                 `json:"namespaces,omitempty"`
+	TopologyKey   *string                                   `json:"topologyKey,omitempty"`
 }
 
 // PodAffinityTermApplyConfiguration represents a declarative configuration of the PodAffinityTerm type for use
@@ -1846,12 +1846,12 @@ func PodAntiAffinity() *PodAntiAffinityApplyConfiguration {
 // PodAttachOptionsApplyConfiguration represents a declarative configuration of the PodAttachOptions type for use
 // with apply.
 type PodAttachOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Stdin                             *bool   `json:"stdin,omitempty"`
-	Stdout                            *bool   `json:"stdout,omitempty"`
-	Stderr                            *bool   `json:"stderr,omitempty"`
-	TTY                               *bool   `json:"tty,omitempty"`
-	Container                         *string `json:"container,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Stdin           *bool   `json:"stdin,omitempty"`
+	Stdout          *bool   `json:"stdout,omitempty"`
+	Stderr          *bool   `json:"stderr,omitempty"`
+	TTY             *bool   `json:"tty,omitempty"`
+	Container       *string `json:"container,omitempty"`
 }
 
 // PodAttachOptionsApplyConfiguration represents a declarative configuration of the PodAttachOptions type for use
@@ -1865,8 +1865,8 @@ func PodAttachOptions() *PodAttachOptionsApplyConfiguration {
 type PodConditionApplyConfiguration struct {
 	Type               *corev1.PodConditionType `json:"type,omitempty"`
 	Status             *corev1.ConditionStatus  `json:"status,omitempty"`
-	LastProbeTime      *apismetav1.Time         `json:"lastProbeTime,omitempty"`
-	LastTransitionTime *apismetav1.Time         `json:"lastTransitionTime,omitempty"`
+	LastProbeTime      *metav1.Time             `json:"lastProbeTime,omitempty"`
+	LastTransitionTime *metav1.Time             `json:"lastTransitionTime,omitempty"`
 	Reason             *string                  `json:"reason,omitempty"`
 	Message            *string                  `json:"message,omitempty"`
 }
@@ -1907,13 +1907,13 @@ func PodDNSConfigOption() *PodDNSConfigOptionApplyConfiguration {
 // PodExecOptionsApplyConfiguration represents a declarative configuration of the PodExecOptions type for use
 // with apply.
 type PodExecOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Stdin                             *bool     `json:"stdin,omitempty"`
-	Stdout                            *bool     `json:"stdout,omitempty"`
-	Stderr                            *bool     `json:"stderr,omitempty"`
-	TTY                               *bool     `json:"tty,omitempty"`
-	Container                         *string   `json:"container,omitempty"`
-	Command                           *[]string `json:"command,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Stdin           *bool     `json:"stdin,omitempty"`
+	Stdout          *bool     `json:"stdout,omitempty"`
+	Stderr          *bool     `json:"stderr,omitempty"`
+	TTY             *bool     `json:"tty,omitempty"`
+	Container       *string   `json:"container,omitempty"`
+	Command         *[]string `json:"command,omitempty"`
 }
 
 // PodExecOptionsApplyConfiguration represents a declarative configuration of the PodExecOptions type for use
@@ -1937,9 +1937,9 @@ func PodIP() *PodIPApplyConfiguration {
 // PodListApplyConfiguration represents a declarative configuration of the PodList type for use
 // with apply.
 type PodListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]PodApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]PodApplyConfiguration `json:"items,omitempty"`
 }
 
 // PodListApplyConfiguration represents a declarative configuration of the PodList type for use
@@ -1951,16 +1951,16 @@ func PodList() *PodListApplyConfiguration {
 // PodLogOptionsApplyConfiguration represents a declarative configuration of the PodLogOptions type for use
 // with apply.
 type PodLogOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Container                         *string          `json:"container,omitempty"`
-	Follow                            *bool            `json:"follow,omitempty"`
-	Previous                          *bool            `json:"previous,omitempty"`
-	SinceSeconds                      *int64           `json:"sinceSeconds,omitempty"`
-	SinceTime                         *apismetav1.Time `json:"sinceTime,omitempty"`
-	Timestamps                        *bool            `json:"timestamps,omitempty"`
-	TailLines                         *int64           `json:"tailLines,omitempty"`
-	LimitBytes                        *int64           `json:"limitBytes,omitempty"`
-	InsecureSkipTLSVerifyBackend      *bool            `json:"insecureSkipTLSVerifyBackend,omitempty"`
+	metav1.TypeMeta              `json:",inline"`
+	Container                    *string      `json:"container,omitempty"`
+	Follow                       *bool        `json:"follow,omitempty"`
+	Previous                     *bool        `json:"previous,omitempty"`
+	SinceSeconds                 *int64       `json:"sinceSeconds,omitempty"`
+	SinceTime                    *metav1.Time `json:"sinceTime,omitempty"`
+	Timestamps                   *bool        `json:"timestamps,omitempty"`
+	TailLines                    *int64       `json:"tailLines,omitempty"`
+	LimitBytes                   *int64       `json:"limitBytes,omitempty"`
+	InsecureSkipTLSVerifyBackend *bool        `json:"insecureSkipTLSVerifyBackend,omitempty"`
 }
 
 // PodLogOptionsApplyConfiguration represents a declarative configuration of the PodLogOptions type for use
@@ -1972,8 +1972,8 @@ func PodLogOptions() *PodLogOptionsApplyConfiguration {
 // PodPortForwardOptionsApplyConfiguration represents a declarative configuration of the PodPortForwardOptions type for use
 // with apply.
 type PodPortForwardOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Ports                             *[]int32 `json:"ports,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Ports           *[]int32 `json:"ports,omitempty"`
 }
 
 // PodPortForwardOptionsApplyConfiguration represents a declarative configuration of the PodPortForwardOptions type for use
@@ -1985,8 +1985,8 @@ func PodPortForwardOptions() *PodPortForwardOptionsApplyConfiguration {
 // PodProxyOptionsApplyConfiguration represents a declarative configuration of the PodProxyOptions type for use
 // with apply.
 type PodProxyOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Path                              *string `json:"path,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Path            *string `json:"path,omitempty"`
 }
 
 // PodProxyOptionsApplyConfiguration represents a declarative configuration of the PodProxyOptions type for use
@@ -2031,7 +2031,7 @@ func PodSecurityContext() *PodSecurityContextApplyConfiguration {
 // PodSignatureApplyConfiguration represents a declarative configuration of the PodSignature type for use
 // with apply.
 type PodSignatureApplyConfiguration struct {
-	PodController *metav1.OwnerReferenceApplyConfiguration `json:"podController,omitempty"`
+	PodController *acmetav1.OwnerReferenceApplyConfiguration `json:"podController,omitempty"`
 }
 
 // PodSignatureApplyConfiguration represents a declarative configuration of the PodSignature type for use
@@ -2097,7 +2097,7 @@ type PodStatusApplyConfiguration struct {
 	HostIP                     *string                              `json:"hostIP,omitempty"`
 	PodIP                      *string                              `json:"podIP,omitempty"`
 	PodIPs                     *[]PodIPApplyConfiguration           `json:"podIPs,omitempty"`
-	StartTime                  *apismetav1.Time                     `json:"startTime,omitempty"`
+	StartTime                  *metav1.Time                         `json:"startTime,omitempty"`
 	InitContainerStatuses      *[]ContainerStatusApplyConfiguration `json:"initContainerStatuses,omitempty"`
 	ContainerStatuses          *[]ContainerStatusApplyConfiguration `json:"containerStatuses,omitempty"`
 	QOSClass                   *corev1.PodQOSClass                  `json:"qosClass,omitempty"`
@@ -2113,9 +2113,9 @@ func PodStatus() *PodStatusApplyConfiguration {
 // PodStatusResultApplyConfiguration represents a declarative configuration of the PodStatusResult type for use
 // with apply.
 type PodStatusResultApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Status                               *PodStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Status            *PodStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // PodStatusResultApplyConfiguration represents a declarative configuration of the PodStatusResult type for use
@@ -2127,9 +2127,9 @@ func PodStatusResult() *PodStatusResultApplyConfiguration {
 // PodTemplateApplyConfiguration represents a declarative configuration of the PodTemplate type for use
 // with apply.
 type PodTemplateApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Template                             *PodTemplateSpecApplyConfiguration `json:"template,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Template          *PodTemplateSpecApplyConfiguration `json:"template,omitempty"`
 }
 
 // PodTemplateApplyConfiguration represents a declarative configuration of the PodTemplate type for use
@@ -2141,9 +2141,9 @@ func PodTemplate() *PodTemplateApplyConfiguration {
 // PodTemplateListApplyConfiguration represents a declarative configuration of the PodTemplateList type for use
 // with apply.
 type PodTemplateListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]PodTemplateApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]PodTemplateApplyConfiguration `json:"items,omitempty"`
 }
 
 // PodTemplateListApplyConfiguration represents a declarative configuration of the PodTemplateList type for use
@@ -2155,8 +2155,8 @@ func PodTemplateList() *PodTemplateListApplyConfiguration {
 // PodTemplateSpecApplyConfiguration represents a declarative configuration of the PodTemplateSpec type for use
 // with apply.
 type PodTemplateSpecApplyConfiguration struct {
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *PodSpecApplyConfiguration `json:"spec,omitempty"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *PodSpecApplyConfiguration `json:"spec,omitempty"`
 }
 
 // PodTemplateSpecApplyConfiguration represents a declarative configuration of the PodTemplateSpec type for use
@@ -2209,7 +2209,7 @@ func Preconditions() *PreconditionsApplyConfiguration {
 // with apply.
 type PreferAvoidPodsEntryApplyConfiguration struct {
 	PodSignature *PodSignatureApplyConfiguration `json:"podSignature,omitempty"`
-	EvictionTime *apismetav1.Time                `json:"evictionTime,omitempty"`
+	EvictionTime *metav1.Time                    `json:"evictionTime,omitempty"`
 	Reason       *string                         `json:"reason,omitempty"`
 	Message      *string                         `json:"message,omitempty"`
 }
@@ -2321,10 +2321,10 @@ func RBDVolumeSource() *RBDVolumeSourceApplyConfiguration {
 // RangeAllocationApplyConfiguration represents a declarative configuration of the RangeAllocation type for use
 // with apply.
 type RangeAllocationApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Range                                *string `json:"range,omitempty"`
-	Data                                 *[]byte `json:"data,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Range             *string `json:"range,omitempty"`
+	Data              *[]byte `json:"data,omitempty"`
 }
 
 // RangeAllocationApplyConfiguration represents a declarative configuration of the RangeAllocation type for use
@@ -2336,10 +2336,10 @@ func RangeAllocation() *RangeAllocationApplyConfiguration {
 // ReplicationControllerApplyConfiguration represents a declarative configuration of the ReplicationController type for use
 // with apply.
 type ReplicationControllerApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *ReplicationControllerSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *ReplicationControllerStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *ReplicationControllerSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *ReplicationControllerStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // ReplicationControllerApplyConfiguration represents a declarative configuration of the ReplicationController type for use
@@ -2353,7 +2353,7 @@ func ReplicationController() *ReplicationControllerApplyConfiguration {
 type ReplicationControllerConditionApplyConfiguration struct {
 	Type               *corev1.ReplicationControllerConditionType `json:"type,omitempty"`
 	Status             *corev1.ConditionStatus                    `json:"status,omitempty"`
-	LastTransitionTime *apismetav1.Time                           `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime *metav1.Time                               `json:"lastTransitionTime,omitempty"`
 	Reason             *string                                    `json:"reason,omitempty"`
 	Message            *string                                    `json:"message,omitempty"`
 }
@@ -2367,9 +2367,9 @@ func ReplicationControllerCondition() *ReplicationControllerConditionApplyConfig
 // ReplicationControllerListApplyConfiguration represents a declarative configuration of the ReplicationControllerList type for use
 // with apply.
 type ReplicationControllerListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]ReplicationControllerApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]ReplicationControllerApplyConfiguration `json:"items,omitempty"`
 }
 
 // ReplicationControllerListApplyConfiguration represents a declarative configuration of the ReplicationControllerList type for use
@@ -2427,10 +2427,10 @@ func ResourceFieldSelector() *ResourceFieldSelectorApplyConfiguration {
 // ResourceQuotaApplyConfiguration represents a declarative configuration of the ResourceQuota type for use
 // with apply.
 type ResourceQuotaApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *ResourceQuotaSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *ResourceQuotaStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *ResourceQuotaSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *ResourceQuotaStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // ResourceQuotaApplyConfiguration represents a declarative configuration of the ResourceQuota type for use
@@ -2442,9 +2442,9 @@ func ResourceQuota() *ResourceQuotaApplyConfiguration {
 // ResourceQuotaListApplyConfiguration represents a declarative configuration of the ResourceQuotaList type for use
 // with apply.
 type ResourceQuotaListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]ResourceQuotaApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]ResourceQuotaApplyConfiguration `json:"items,omitempty"`
 }
 
 // ResourceQuotaListApplyConfiguration represents a declarative configuration of the ResourceQuotaList type for use
@@ -2592,12 +2592,12 @@ func SeccompProfile() *SeccompProfileApplyConfiguration {
 // SecretApplyConfiguration represents a declarative configuration of the Secret type for use
 // with apply.
 type SecretApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Immutable                            *bool              `json:"immutable,omitempty"`
-	Data                                 *map[string][]byte `json:"data,omitempty"`
-	StringData                           *map[string]string `json:"stringData,omitempty"`
-	Type                                 *corev1.SecretType `json:"type,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Immutable         *bool              `json:"immutable,omitempty"`
+	Data              *map[string][]byte `json:"data,omitempty"`
+	StringData        *map[string]string `json:"stringData,omitempty"`
+	Type              *corev1.SecretType `json:"type,omitempty"`
 }
 
 // SecretApplyConfiguration represents a declarative configuration of the Secret type for use
@@ -2636,9 +2636,9 @@ func SecretKeySelector() *SecretKeySelectorApplyConfiguration {
 // SecretListApplyConfiguration represents a declarative configuration of the SecretList type for use
 // with apply.
 type SecretListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]SecretApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]SecretApplyConfiguration `json:"items,omitempty"`
 }
 
 // SecretListApplyConfiguration represents a declarative configuration of the SecretList type for use
@@ -2714,8 +2714,8 @@ func SecurityContext() *SecurityContextApplyConfiguration {
 // SerializedReferenceApplyConfiguration represents a declarative configuration of the SerializedReference type for use
 // with apply.
 type SerializedReferenceApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Reference                         *ObjectReferenceApplyConfiguration `json:"reference,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Reference       *ObjectReferenceApplyConfiguration `json:"reference,omitempty"`
 }
 
 // SerializedReferenceApplyConfiguration represents a declarative configuration of the SerializedReference type for use
@@ -2727,10 +2727,10 @@ func SerializedReference() *SerializedReferenceApplyConfiguration {
 // ServiceApplyConfiguration represents a declarative configuration of the Service type for use
 // with apply.
 type ServiceApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                 *ServiceSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                               *ServiceStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *ServiceSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *ServiceStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // ServiceApplyConfiguration represents a declarative configuration of the Service type for use
@@ -2742,11 +2742,11 @@ func Service() *ServiceApplyConfiguration {
 // ServiceAccountApplyConfiguration represents a declarative configuration of the ServiceAccount type for use
 // with apply.
 type ServiceAccountApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*metav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Secrets                              *[]ObjectReferenceApplyConfiguration      `json:"secrets,omitempty"`
-	ImagePullSecrets                     *[]LocalObjectReferenceApplyConfiguration `json:"imagePullSecrets,omitempty"`
-	AutomountServiceAccountToken         *bool                                     `json:"automountServiceAccountToken,omitempty"`
+	metav1.TypeMeta              `json:",inline"`
+	metav1.ObjectMeta            `json:"metadata,omitempty"`
+	Secrets                      *[]ObjectReferenceApplyConfiguration      `json:"secrets,omitempty"`
+	ImagePullSecrets             *[]LocalObjectReferenceApplyConfiguration `json:"imagePullSecrets,omitempty"`
+	AutomountServiceAccountToken *bool                                     `json:"automountServiceAccountToken,omitempty"`
 }
 
 // ServiceAccountApplyConfiguration represents a declarative configuration of the ServiceAccount type for use
@@ -2758,9 +2758,9 @@ func ServiceAccount() *ServiceAccountApplyConfiguration {
 // ServiceAccountListApplyConfiguration represents a declarative configuration of the ServiceAccountList type for use
 // with apply.
 type ServiceAccountListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]ServiceAccountApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]ServiceAccountApplyConfiguration `json:"items,omitempty"`
 }
 
 // ServiceAccountListApplyConfiguration represents a declarative configuration of the ServiceAccountList type for use
@@ -2786,9 +2786,9 @@ func ServiceAccountTokenProjection() *ServiceAccountTokenProjectionApplyConfigur
 // ServiceListApplyConfiguration represents a declarative configuration of the ServiceList type for use
 // with apply.
 type ServiceListApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*metav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                              *[]ServiceApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]ServiceApplyConfiguration `json:"items,omitempty"`
 }
 
 // ServiceListApplyConfiguration represents a declarative configuration of the ServiceList type for use
@@ -2817,8 +2817,8 @@ func ServicePort() *ServicePortApplyConfiguration {
 // ServiceProxyOptionsApplyConfiguration represents a declarative configuration of the ServiceProxyOptions type for use
 // with apply.
 type ServiceProxyOptionsApplyConfiguration struct {
-	metav1.TypeMetaApplyConfiguration `json:",inline"`
-	Path                              *string `json:"path,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Path            *string `json:"path,omitempty"`
 }
 
 // ServiceProxyOptionsApplyConfiguration represents a declarative configuration of the ServiceProxyOptions type for use
@@ -2859,8 +2859,8 @@ func ServiceSpec() *ServiceSpecApplyConfiguration {
 // ServiceStatusApplyConfiguration represents a declarative configuration of the ServiceStatus type for use
 // with apply.
 type ServiceStatusApplyConfiguration struct {
-	LoadBalancer *LoadBalancerStatusApplyConfiguration `json:"loadBalancer,omitempty"`
-	Conditions   *[]metav1.ConditionApplyConfiguration `json:"conditions,omitempty"`
+	LoadBalancer *LoadBalancerStatusApplyConfiguration   `json:"loadBalancer,omitempty"`
+	Conditions   *[]acmetav1.ConditionApplyConfiguration `json:"conditions,omitempty"`
 }
 
 // ServiceStatusApplyConfiguration represents a declarative configuration of the ServiceStatus type for use
@@ -2945,7 +2945,7 @@ type TaintApplyConfiguration struct {
 	Key       *string             `json:"key,omitempty"`
 	Value     *string             `json:"value,omitempty"`
 	Effect    *corev1.TaintEffect `json:"effect,omitempty"`
-	TimeAdded *apismetav1.Time    `json:"timeAdded,omitempty"`
+	TimeAdded *metav1.Time        `json:"timeAdded,omitempty"`
 }
 
 // TaintApplyConfiguration represents a declarative configuration of the Taint type for use
@@ -2998,10 +2998,10 @@ func TopologySelectorTerm() *TopologySelectorTermApplyConfiguration {
 // TopologySpreadConstraintApplyConfiguration represents a declarative configuration of the TopologySpreadConstraint type for use
 // with apply.
 type TopologySpreadConstraintApplyConfiguration struct {
-	MaxSkew           *int32                                  `json:"maxSkew,omitempty"`
-	TopologyKey       *string                                 `json:"topologyKey,omitempty"`
-	WhenUnsatisfiable *corev1.UnsatisfiableConstraintAction   `json:"whenUnsatisfiable,omitempty"`
-	LabelSelector     *metav1.LabelSelectorApplyConfiguration `json:"labelSelector,omitempty"`
+	MaxSkew           *int32                                    `json:"maxSkew,omitempty"`
+	TopologyKey       *string                                   `json:"topologyKey,omitempty"`
+	WhenUnsatisfiable *corev1.UnsatisfiableConstraintAction     `json:"whenUnsatisfiable,omitempty"`
+	LabelSelector     *acmetav1.LabelSelectorApplyConfiguration `json:"labelSelector,omitempty"`
 }
 
 // TopologySpreadConstraintApplyConfiguration represents a declarative configuration of the TopologySpreadConstraint type for use

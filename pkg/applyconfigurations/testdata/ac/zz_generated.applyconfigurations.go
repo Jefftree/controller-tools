@@ -30,10 +30,10 @@ func AssociativeType() *AssociativeTypeApplyConfiguration {
 // CronJobApplyConfiguration represents a declarative configuration of the CronJob type for use
 // with apply.
 type CronJobApplyConfiguration struct {
-	acmetav1.TypeMetaApplyConfiguration    `json:",inline"`
-	*acmetav1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                                   *CronJobSpecApplyConfiguration   `json:"spec,omitempty"`
-	Status                                 *CronJobStatusApplyConfiguration `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *CronJobSpecApplyConfiguration   `json:"spec,omitempty"`
+	Status            *CronJobStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // CronJobApplyConfiguration represents a declarative configuration of the CronJob type for use
@@ -41,19 +41,31 @@ type CronJobApplyConfiguration struct {
 func CronJob() *CronJobApplyConfiguration {
 	return &CronJobApplyConfiguration{}
 }
+func (ac *CronJobApplyConfiguration) GetReferenceType() runtime.Object {
+	return testdata.CronJob{}
+}
+func (ac *CronJobApplyConfiguration) DeepCopy() *CronJobApplyConfiguration {
+	return ac
+}
 
 // CronJobListApplyConfiguration represents a declarative configuration of the CronJobList type for use
 // with apply.
 type CronJobListApplyConfiguration struct {
-	acmetav1.TypeMetaApplyConfiguration  `json:",inline"`
-	*acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                                *[]CronJobApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta                     `json:",inline"`
+	acmetav1.ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                               *[]CronJobApplyConfiguration `json:"items,omitempty"`
 }
 
 // CronJobListApplyConfiguration represents a declarative configuration of the CronJobList type for use
 // with apply.
 func CronJobList() *CronJobListApplyConfiguration {
 	return &CronJobListApplyConfiguration{}
+}
+func (ac *CronJobListApplyConfiguration) GetReferenceType() runtime.Object {
+	return testdata.CronJobList{}
+}
+func (ac *CronJobListApplyConfiguration) DeepCopy() *CronJobListApplyConfiguration {
+	return ac
 }
 
 // CronJobSpecApplyConfiguration represents a declarative configuration of the CronJobSpec type for use
@@ -81,7 +93,6 @@ type CronJobSpecApplyConfiguration struct {
 	EmbeddedResource           *runtime.RawExtension                      `json:"embeddedResource,omitempty"`
 	UnprunedJSON               *NestedObjectApplyConfiguration            `json:"unprunedJSON,omitempty"`
 	UnprunedEmbeddedResource   *runtime.RawExtension                      `json:"unprunedEmbeddedResource,omitempty"`
-	UnprunedFromType           *PreservedApplyConfiguration               `json:"unprunedFomType,omitempty"`
 	AssociativeList            *[]AssociativeTypeApplyConfiguration       `json:"associativeList,omitempty"`
 	MapOfInfo                  *map[string][]byte                         `json:"mapOfInfo,omitempty"`
 	StructWithSeveralFields    *NestedObjectApplyConfiguration            `json:"structWithSeveralFields,omitempty"`
@@ -134,18 +145,6 @@ type NestedObjectApplyConfiguration struct {
 // with apply.
 func NestedObject() *NestedObjectApplyConfiguration {
 	return &NestedObjectApplyConfiguration{}
-}
-
-// PreservedApplyConfiguration represents a declarative configuration of the Preserved type for use
-// with apply.
-type PreservedApplyConfiguration struct {
-	ConcreteField *string `json:"concreteField,omitempty"`
-}
-
-// PreservedApplyConfiguration represents a declarative configuration of the Preserved type for use
-// with apply.
-func Preserved() *PreservedApplyConfiguration {
-	return &PreservedApplyConfiguration{}
 }
 
 // RootObjectApplyConfiguration represents a declarative configuration of the RootObject type for use

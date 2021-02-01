@@ -13,7 +13,7 @@ import (
 // APIGroupApplyConfiguration represents a declarative configuration of the APIGroup type for use
 // with apply.
 type APIGroupApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
+	metav1.TypeMeta            `json:",inline"`
 	Name                       *string                                        `json:"name,omitempty"`
 	Versions                   *[]GroupVersionForDiscoveryApplyConfiguration  `json:"versions,omitempty"`
 	PreferredVersion           *GroupVersionForDiscoveryApplyConfiguration    `json:"preferredVersion,omitempty"`
@@ -29,8 +29,8 @@ func APIGroup() *APIGroupApplyConfiguration {
 // APIGroupListApplyConfiguration represents a declarative configuration of the APIGroupList type for use
 // with apply.
 type APIGroupListApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	Groups                     *[]APIGroupApplyConfiguration `json:"groups,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Groups          *[]APIGroupApplyConfiguration `json:"groups,omitempty"`
 }
 
 // APIGroupListApplyConfiguration represents a declarative configuration of the APIGroupList type for use
@@ -63,9 +63,9 @@ func APIResource() *APIResourceApplyConfiguration {
 // APIResourceListApplyConfiguration represents a declarative configuration of the APIResourceList type for use
 // with apply.
 type APIResourceListApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	GroupVersion               *string                          `json:"groupVersion,omitempty"`
-	APIResources               *[]APIResourceApplyConfiguration `json:"resources,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	GroupVersion    *string                          `json:"groupVersion,omitempty"`
+	APIResources    *[]APIResourceApplyConfiguration `json:"resources,omitempty"`
 }
 
 // APIResourceListApplyConfiguration represents a declarative configuration of the APIResourceList type for use
@@ -77,7 +77,7 @@ func APIResourceList() *APIResourceListApplyConfiguration {
 // APIVersionsApplyConfiguration represents a declarative configuration of the APIVersions type for use
 // with apply.
 type APIVersionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
+	metav1.TypeMeta            `json:",inline"`
 	Versions                   *[]string                                      `json:"versions,omitempty"`
 	ServerAddressByClientCIDRs *[]ServerAddressByClientCIDRApplyConfiguration `json:"serverAddressByClientCIDRs,omitempty"`
 }
@@ -108,9 +108,9 @@ func Condition() *ConditionApplyConfiguration {
 // CreateOptionsApplyConfiguration represents a declarative configuration of the CreateOptions type for use
 // with apply.
 type CreateOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	DryRun                     *[]string `json:"dryRun,omitempty"`
-	FieldManager               *string   `json:"fieldManager,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	DryRun          *[]string `json:"dryRun,omitempty"`
+	FieldManager    *string   `json:"fieldManager,omitempty"`
 }
 
 // CreateOptionsApplyConfiguration represents a declarative configuration of the CreateOptions type for use
@@ -122,12 +122,12 @@ func CreateOptions() *CreateOptionsApplyConfiguration {
 // DeleteOptionsApplyConfiguration represents a declarative configuration of the DeleteOptions type for use
 // with apply.
 type DeleteOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	GracePeriodSeconds         *int64                           `json:"gracePeriodSeconds,omitempty"`
-	Preconditions              *PreconditionsApplyConfiguration `json:"preconditions,omitempty"`
-	OrphanDependents           *bool                            `json:"orphanDependents,omitempty"`
-	PropagationPolicy          *metav1.DeletionPropagation      `json:"propagationPolicy,omitempty"`
-	DryRun                     *[]string                        `json:"dryRun,omitempty"`
+	metav1.TypeMeta    `json:",inline"`
+	GracePeriodSeconds *int64                           `json:"gracePeriodSeconds,omitempty"`
+	Preconditions      *PreconditionsApplyConfiguration `json:"preconditions,omitempty"`
+	OrphanDependents   *bool                            `json:"orphanDependents,omitempty"`
+	PropagationPolicy  *metav1.DeletionPropagation      `json:"propagationPolicy,omitempty"`
+	DryRun             *[]string                        `json:"dryRun,omitempty"`
 }
 
 // DeleteOptionsApplyConfiguration represents a declarative configuration of the DeleteOptions type for use
@@ -139,9 +139,9 @@ func DeleteOptions() *DeleteOptionsApplyConfiguration {
 // ExportOptionsApplyConfiguration represents a declarative configuration of the ExportOptions type for use
 // with apply.
 type ExportOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	Export                     *bool `json:"export,omitempty"`
-	Exact                      *bool `json:"exact,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	Export          *bool `json:"export,omitempty"`
+	Exact           *bool `json:"exact,omitempty"`
 }
 
 // ExportOptionsApplyConfiguration represents a declarative configuration of the ExportOptions type for use
@@ -153,8 +153,8 @@ func ExportOptions() *ExportOptionsApplyConfiguration {
 // GetOptionsApplyConfiguration represents a declarative configuration of the GetOptions type for use
 // with apply.
 type GetOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	ResourceVersion            *string `json:"resourceVersion,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	ResourceVersion *string `json:"resourceVersion,omitempty"`
 }
 
 // GetOptionsApplyConfiguration represents a declarative configuration of the GetOptions type for use
@@ -273,9 +273,9 @@ func LabelSelectorRequirement() *LabelSelectorRequirementApplyConfiguration {
 // ListApplyConfiguration represents a declarative configuration of the List type for use
 // with apply.
 type ListApplyConfiguration struct {
-	TypeMetaApplyConfiguration  `json:",inline"`
-	*ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                       *[]runtime.RawExtension `json:"items,omitempty"`
+	metav1.TypeMeta            `json:",inline"`
+	ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                      *[]runtime.RawExtension `json:"items,omitempty"`
 }
 
 // ListApplyConfiguration represents a declarative configuration of the List type for use
@@ -302,16 +302,16 @@ func ListMeta() *ListMetaApplyConfiguration {
 // ListOptionsApplyConfiguration represents a declarative configuration of the ListOptions type for use
 // with apply.
 type ListOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	LabelSelector              *string                      `json:"labelSelector,omitempty"`
-	FieldSelector              *string                      `json:"fieldSelector,omitempty"`
-	Watch                      *bool                        `json:"watch,omitempty"`
-	AllowWatchBookmarks        *bool                        `json:"allowWatchBookmarks,omitempty"`
-	ResourceVersion            *string                      `json:"resourceVersion,omitempty"`
-	ResourceVersionMatch       *metav1.ResourceVersionMatch `json:"resourceVersionMatch,omitempty"`
-	TimeoutSeconds             *int64                       `json:"timeoutSeconds,omitempty"`
-	Limit                      *int64                       `json:"limit,omitempty"`
-	Continue                   *string                      `json:"continue,omitempty"`
+	metav1.TypeMeta      `json:",inline"`
+	LabelSelector        *string                      `json:"labelSelector,omitempty"`
+	FieldSelector        *string                      `json:"fieldSelector,omitempty"`
+	Watch                *bool                        `json:"watch,omitempty"`
+	AllowWatchBookmarks  *bool                        `json:"allowWatchBookmarks,omitempty"`
+	ResourceVersion      *string                      `json:"resourceVersion,omitempty"`
+	ResourceVersionMatch *metav1.ResourceVersionMatch `json:"resourceVersionMatch,omitempty"`
+	TimeoutSeconds       *int64                       `json:"timeoutSeconds,omitempty"`
+	Limit                *int64                       `json:"limit,omitempty"`
+	Continue             *string                      `json:"continue,omitempty"`
 }
 
 // ListOptionsApplyConfiguration represents a declarative configuration of the ListOptions type for use
@@ -384,8 +384,8 @@ func OwnerReference() *OwnerReferenceApplyConfiguration {
 // PartialObjectMetadataApplyConfiguration represents a declarative configuration of the PartialObjectMetadata type for use
 // with apply.
 type PartialObjectMetadataApplyConfiguration struct {
-	TypeMetaApplyConfiguration    `json:",inline"`
-	*ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 }
 
 // PartialObjectMetadataApplyConfiguration represents a declarative configuration of the PartialObjectMetadata type for use
@@ -397,9 +397,9 @@ func PartialObjectMetadata() *PartialObjectMetadataApplyConfiguration {
 // PartialObjectMetadataListApplyConfiguration represents a declarative configuration of the PartialObjectMetadataList type for use
 // with apply.
 type PartialObjectMetadataListApplyConfiguration struct {
-	TypeMetaApplyConfiguration  `json:",inline"`
-	*ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Items                       *[]PartialObjectMetadataApplyConfiguration `json:"items,omitempty"`
+	metav1.TypeMeta            `json:",inline"`
+	ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Items                      *[]PartialObjectMetadataApplyConfiguration `json:"items,omitempty"`
 }
 
 // PartialObjectMetadataListApplyConfiguration represents a declarative configuration of the PartialObjectMetadataList type for use
@@ -411,10 +411,10 @@ func PartialObjectMetadataList() *PartialObjectMetadataListApplyConfiguration {
 // PatchOptionsApplyConfiguration represents a declarative configuration of the PatchOptions type for use
 // with apply.
 type PatchOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	DryRun                     *[]string `json:"dryRun,omitempty"`
-	Force                      *bool     `json:"force,omitempty"`
-	FieldManager               *string   `json:"fieldManager,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	DryRun          *[]string `json:"dryRun,omitempty"`
+	Force           *bool     `json:"force,omitempty"`
+	FieldManager    *string   `json:"fieldManager,omitempty"`
 }
 
 // PatchOptionsApplyConfiguration represents a declarative configuration of the PatchOptions type for use
@@ -464,13 +464,13 @@ func ServerAddressByClientCIDR() *ServerAddressByClientCIDRApplyConfiguration {
 // StatusApplyConfiguration represents a declarative configuration of the Status type for use
 // with apply.
 type StatusApplyConfiguration struct {
-	TypeMetaApplyConfiguration  `json:",inline"`
-	*ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	Status                      *string                          `json:"status,omitempty"`
-	Message                     *string                          `json:"message,omitempty"`
-	Reason                      *metav1.StatusReason             `json:"reason,omitempty"`
-	Details                     *StatusDetailsApplyConfiguration `json:"details,omitempty"`
-	Code                        *int32                           `json:"code,omitempty"`
+	metav1.TypeMeta            `json:",inline"`
+	ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	Status                     *string                          `json:"status,omitempty"`
+	Message                    *string                          `json:"message,omitempty"`
+	Reason                     *metav1.StatusReason             `json:"reason,omitempty"`
+	Details                    *StatusDetailsApplyConfiguration `json:"details,omitempty"`
+	Code                       *int32                           `json:"code,omitempty"`
 }
 
 // StatusApplyConfiguration represents a declarative configuration of the Status type for use
@@ -513,10 +513,10 @@ func StatusDetails() *StatusDetailsApplyConfiguration {
 // TableApplyConfiguration represents a declarative configuration of the Table type for use
 // with apply.
 type TableApplyConfiguration struct {
-	TypeMetaApplyConfiguration  `json:",inline"`
-	*ListMetaApplyConfiguration `json:"metadata,omitempty"`
-	ColumnDefinitions           *[]TableColumnDefinitionApplyConfiguration `json:"columnDefinitions,omitempty"`
-	Rows                        *[]TableRowApplyConfiguration              `json:"rows,omitempty"`
+	metav1.TypeMeta            `json:",inline"`
+	ListMetaApplyConfiguration `json:"metadata,omitempty"`
+	ColumnDefinitions          *[]TableColumnDefinitionApplyConfiguration `json:"columnDefinitions,omitempty"`
+	Rows                       *[]TableRowApplyConfiguration              `json:"rows,omitempty"`
 }
 
 // TableApplyConfiguration represents a declarative configuration of the Table type for use
@@ -544,8 +544,8 @@ func TableColumnDefinition() *TableColumnDefinitionApplyConfiguration {
 // TableOptionsApplyConfiguration represents a declarative configuration of the TableOptions type for use
 // with apply.
 type TableOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	IncludeObject              *metav1.IncludeObjectPolicy `json:"includeObject,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	IncludeObject   *metav1.IncludeObjectPolicy `json:"includeObject,omitempty"`
 }
 
 // TableOptionsApplyConfiguration represents a declarative configuration of the TableOptions type for use
@@ -612,9 +612,9 @@ func TypeMeta() *TypeMetaApplyConfiguration {
 // UpdateOptionsApplyConfiguration represents a declarative configuration of the UpdateOptions type for use
 // with apply.
 type UpdateOptionsApplyConfiguration struct {
-	TypeMetaApplyConfiguration `json:",inline"`
-	DryRun                     *[]string `json:"dryRun,omitempty"`
-	FieldManager               *string   `json:"fieldManager,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+	DryRun          *[]string `json:"dryRun,omitempty"`
+	FieldManager    *string   `json:"fieldManager,omitempty"`
 }
 
 // UpdateOptionsApplyConfiguration represents a declarative configuration of the UpdateOptions type for use
